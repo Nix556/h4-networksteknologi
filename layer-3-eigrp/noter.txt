@@ -1,0 +1,7 @@
+debug eigrp packets                 # viser EIGRP-pakker i realtid, fx Hello-pakker mellem naboer
+show ip eigrp traffic               # viser statistik over EIGRP-pakker sendt og modtaget
+show ip eigrp topology              # viser kendte ruter og de bedste ruter til netværk
+show ip eigrp topology all-links    # viser alle kendte ruter, også alternative ruter (non-successors)
+show ip eigrp interfaces detail     # viser detaljer om EIGRP-interfaces, fx Hello-interval og Hold-timer
+show ip eigrp neighbor detail       # viser detaljer om EIGRP-naboer, fx IP-adresse og forbindelsesstatus
+show ip eigrp events                # viser ændringer i ruter og naboer

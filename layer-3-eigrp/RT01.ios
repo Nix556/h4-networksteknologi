@@ -1,0 +1,48 @@
+# configure basics
+enable
+conf t
+hostname RT01
+no ip domain lookup
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+ exit
+line vty 0 4
+ privilege level 15
+ exec-timeout 0 0
+ password cisco123
+ login
+ exit
+interface g0/0/0
+ ip address 10.12.0.1 255.255.255.0
+ no shutdown
+ exit
+interface s0/1/0
+ ip address 10.13.0.1 255.255.255.0
+ no shutdown
+ exit
+interface g0/0/1
+ ip address 192.168.3.1 255.255.255.0
+ no shutdown
+ exit
+# configure EIGRP
+router eigrp 98
+network 10.12.0.0 0.0.0.255
+network 10.13.0.0 0.0.0.255
+network 192.168.3.0 0.0.0.255
+ exit
+interface g0/0/0
+ ip hello-interval eigrp 98 10
+ ip hold-time eigrp 98 30
+ exit
+interface s0/1/0
+ ip hello-interval eigrp 98 10
+ ip hold-time eigrp 98 30
+ exit
+interface g0/0/0
+ ip summary-address eigrp 98 192.168.0.0 255.255.252.0
+ exit
+interface s0/1/0
+ ip summary-address eigrp 98 192.168.0.0 255.255.252.0
+ exit
+end

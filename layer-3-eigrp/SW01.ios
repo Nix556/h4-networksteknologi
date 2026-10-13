@@ -1,0 +1,47 @@
+# configure the basics
+enable
+conf t
+hostname SW01
+no ip domain lookup
+ip routing
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+ exit
+line vty 0 4
+ privilege level 15
+ exec-timeout 0 0
+ password cisco123
+ login
+ exit
+interface range g1/0/1-24
+ shutdown
+ exit
+interface g1/0/11
+ no switchport
+ ip address 192.168.3.2 255.255.255.0
+ no shutdown
+ exit
+interface loopback 0
+ ip address 192.168.2.1 255.255.255.0
+ no shutdown
+ exit
+interface loopback 1
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+ exit
+interface loopback 2
+ ip address 192.168.0.1 255.255.255.0
+ no shutdown
+ exit
+# configure EIGRP
+router eigrp 98
+network 192.168.3.0 0.0.0.255
+network 192.168.2.0 0.0.0.255
+network 192.168.1.0 0.0.0.255
+network 192.168.0.0 0.0.0.255
+ exit
+router eigrp 98
+ eigrp stub
+ exit
+end

@@ -1,0 +1,36 @@
+# configure basics
+enable
+conf t
+hostname RT02
+no ip domain lookup
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+ exit
+line vty 0 4
+ privilege level 15
+ exec-timeout 0 0
+ password cisco123
+ login
+ exit
+interface g0/0/0
+ ip address 10.12.0.2 255.255.255.0
+ no shutdown
+ exit
+interface g0/0/1
+ ip address 10.23.0.2 255.255.255.0
+ no shutdown
+ exit
+# configure EIGRP
+router eigrp 98
+network 10.12.0.0 0.0.0.255
+network 10.23.0.0 0.0.0.255
+ exit
+ip access-list standard EIGRP-FILTER
+ deny 10.12.0.0 0.0.255.255
+ permit any
+ exit
+router eigrp 98
+ distribute-list EIGRP-FILTER out g0/0/1
+ exit
+end

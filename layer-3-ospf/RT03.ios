@@ -33,4 +33,11 @@ interface g0/0/1
  ospfv3 123 ipv4 area 2
  ospfv3 123 ipv6 area 2
  exit
+router ospfv3 123 
+ address-family ipv6 unicast 
+ area 2 range 2001:db8:acad:2000::/52
+ exit
+interface g0/0/0 
+ ospfv3 network point-to-point
+ exit 
 end

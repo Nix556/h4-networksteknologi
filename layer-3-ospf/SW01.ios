@@ -28,4 +28,7 @@ interface g1/0/11
 interface g1/0/23
  ipv6 ospf 123 area 1
  exit
+ipv6 router ospf 123 
+ passive-interface g1/0/23
+ exit
 end

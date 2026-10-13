@@ -40,4 +40,19 @@ interface g0/0/1
  ospfv3 123 ipv4 area 0
  ospfv3 123 ipv6 area 0
  exit
+interface g0/0/1 
+ ospfv3 network point-to-point 
+ exit 
+interface g0/0/0 
+ ospfv3 network point-to-point
+ exit
+ipv6 route ::/0 lo0 
+ip route 0.0.0.0 0.0.0.0 lo0 
+router ospfv3 123 
+ address-family ipv6 unicast 
+ default-information originate 
+ exit 
+ address-family ipv4 unicast 
+ default-information originate 
+ exit 
 end

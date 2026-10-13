@@ -38,4 +38,14 @@ interface g 1/0/23
  ospfv3 123 ipv4 area 2
  ospfv3 123 ipv6 area 2
  exit
+router ospfv3 123 
+ passive-interface g1/0/23 
+ no passive-interface g1/0/23 
+ address-family ipv4 unicast 
+ passive-interface g1/0/23 
+ exit-address-family 
+ address-family ipv6 unicast 
+ passive-interface g1/0/23 
+ exit-address-family
+ exit
 end

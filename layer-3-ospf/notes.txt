@@ -1,0 +1,7 @@
+show ipv6 cef
+show ipv6 route ospf
+show ipv6 neighbors
+show ipv6 ospf
+show ipv6 protocols
+show ipv6 ospf neighbor
+show ipv6 ospf database

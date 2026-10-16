@@ -1,0 +1,10 @@
+show ip ospf neighbor
+show ip protocols
+show ip route ospf
+show ip ospf database
+show ip ospf database external
+show ip cef 192.168.1.1
+show route-map
+show ip policy
+show ip local policy
+show ip arp

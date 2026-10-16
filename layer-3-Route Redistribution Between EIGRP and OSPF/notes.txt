@@ -1,0 +1,9 @@
+show ospfv3 neighbor
+show ip route ospfv3
+show ipv6 route ospf
+show ip eigrp neighbors
+show ip route eigrp
+show route-map
+show ip prefix-list
+show ip ospf database external
+show ip protocols

@@ -5,4 +5,4 @@ Samling af labs og opgaver vi har lavet på H4.
 ---
 
 # Den lokale tweaker oppe i Rosengårdscenter
-![image](local-tweeker.jpg)
+![image](local-tweeker.png)

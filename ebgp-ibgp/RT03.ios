@@ -1,0 +1,70 @@
+enable
+conf t
+hostname RT03
+no ip domain lookup
+line con 0
+exec-timeout 0 0
+logging sync
+ip routing
+ipv6 unicast-routing
+router ospfv3 1
+address-family ipv4 unicast
+  router-id 3.3.3.3
+ exit-address-family
+address-family ipv6 unicast
+  router-id 3.3.3.3
+ exit-address-family
+interface GigabitEthernet0/0/0
+ ip address 10.0.0.6 255.255.255.252
+ ipv6 address 2001:db8:feed:2::6/64
+ ipv6 address fe80::3:1 link-local
+ ospfv3 network point-to-point
+ ospfv3 1 ipv6 area 0
+ ospfv3 1 ipv4 area 0
+ no shutdown
+ exit
+interface GigabitEthernet0/0/1
+ ip address 209.165.200.9 255.255.255.252
+ ipv6 address 2001:db8:209:8::9/64
+ ipv6 address fe80::3:2 link-local
+ no shutdown
+ exit
+router bgp 65000
+ bgp log-neighbor-changes
+ neighbor 209.165.200.10 remote-as 65002
+ neighbor 2001:db8:209:8::10 remote-as 65002
+ address-family ipv4 unicast
+ neighbor 209.165.200.10 activate
+ exit-address-family
+ address-family ipv6 unicast
+ neighbor 2001:db8:209:8::10 activate
+ exit-address-family
+ exit
+router bgp 65000
+ neighbor 10.0.0.5 remote-as 65000
+ neighbor 10.0.0.2 remote-as 65000
+ address-family ipv4 unicast
+ neighbor 10.0.0.5 activate
+ neighbor 10.0.0.2 activate
+ neighbor 10.0.0.5 next-hop-self
+ neighbor 10.0.0.2 next-hop-self
+ exit-address-family
+ neighbor 2001:db8:feed:2::5 remote-as 65000
+ neighbor 2001:db8:feed:1::2 remote-as 65000
+ address-family ipv6 unicast
+ neighbor 2001:db8:feed:2::5 activate
+ neighbor 2001:db8:feed:2::5 next-hop-self
+ neighbor 2001:db8:feed:1::2 activate
+ neighbor 2001:db8:feed:1::2 next-hop-self
+ exit-address-family
+ exit
+ip as-path access-list 10 permit ^$
+router bgp 65000
+ address-family ipv4 unicast
+ neighbor 209.165.200.10 filter-list 10 out
+ exit-address-family
+ address-family ipv6 unicast
+ neighbor 2001:db8:209:8::10 filter-list 10 out
+ exit-address-family
+ exit
+end

@@ -1,0 +1,42 @@
+enable
+conf t
+hostname SW02
+no ip domain lookup
+line con 0
+exec-timeout 0 0
+logging sync
+ip routing
+ipv6 unicast-routing
+interface GigabitEthernet1/0/11
+ no switchport
+ ip address 209.165.200.10 255.255.255.252
+ ipv6 address 2001:db8:209:8::10/64
+ ipv6 address fe80::d2:1 link-local
+ no shutdown
+ exit
+interface loopback0
+ ip address 192.168.10.1 255.255.255.0
+ ipv6 enable
+ no shutdown
+ exit
+interface loopback1
+ ip address 192.168.20.1 255.255.255.0
+ ipv6 enable
+ no shutdown
+ exit
+interface loopback2
+ ipv6 address 2001:db8:acad::1/48
+ no shutdown
+ exit
+router bgp 65002
+ bgp log-neighbor-changes
+ neighbor 209.165.200.9 remote-as 65000
+ neighbor 2001:db8:209:8::9 remote-as 65000
+ network 192.168.10.0 mask 255.255.255.0
+ network 192.168.20.0 mask 255.255.255.0
+ address-family ipv6 unicast
+ neighbor 2001:db8:209:8::9 activate
+ network 2001:db8:acad::/48
+ exit-address-family
+ exit
+end

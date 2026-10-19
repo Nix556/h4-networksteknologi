@@ -1,0 +1,80 @@
+enable
+conf t
+hostname RT02
+no ip domain lookup
+line con 0
+exec-timeout 0 0
+logging sync
+ipv6 unicast-routing
+router ospfv3 1
+address-family ipv4 unicast
+  router-id 2.2.2.2
+ exit-address-family
+address-family ipv6 unicast
+  router-id 2.2.2.2
+ exit-address-family
+interface GigabitEthernet0/0/0
+ ip address 10.0.0.1 255.255.255.252
+ ipv6 address 2001:db8:feed:1::1/64
+ ipv6 address fe80::2:1 link-local
+ ospfv3 network point-to-point
+ ospfv3 1 ipv6 area 0
+ ospfv3 1 ipv4 area 0
+ no shutdown
+ exit
+interface GigabitEthernet0/0/1
+ ip address 10.0.0.5 255.255.255.252
+ ipv6 address 2001:db8:feed:2::5/64
+ ipv6 address fe80::2:2 link-local
+ ospfv3 network point-to-point
+ ospfv3 1 ipv6 area 0
+ ospfv3 1 ipv4 area 0
+ no shutdown
+ exit
+interface loopback0
+ ip address 172.16.1.1 255.255.255.0
+ ipv6 enable
+ ospfv3 1 ipv4 area 0
+ ospfv3 network point-to-point
+ no shutdown
+ exit
+interface loopback1
+ ip address 172.16.2.1 255.255.255.0
+ ipv6 enable
+ ospfv3 1 ipv4 area 0
+ ospfv3 network point-to-point
+ no shutdown
+ exit
+interface loopback2
+ ipv6 address 2001:db8:a001:1::1/64
+ ospfv3 1 ipv6 area 0
+ ospfv3 network point-to-point
+ no shutdown
+ exit
+interface loopback3
+ ipv6 address 2001:db8:a002:1::1/64
+ ospfv3 1 ipv6 area 0
+ ospfv3 network point-to-point
+ no shutdown
+ exit
+router bgp 65000
+ bgp log-neighbor-changes
+ neighbor 10.0.0.2 remote-as 65000
+ neighbor 10.0.0.6 remote-as 65000
+ address-family ipv4 unicast
+ neighbor 10.0.0.2 activate
+ neighbor 10.0.0.6 activate 
+ network 172.16.0.0 mask 255.255.0.0
+ exit-address-family
+ neighbor 2001:db8:feed:2::6 remote-as 65000
+ neighbor 2001:db8:feed:1::2 remote-as 65000
+ address-family ipv6 unicast
+ neighbor 2001:db8:feed:1::2 activate
+ neighbor 2001:db8:feed:2::6 activate
+ network 2001:db8:a000::/36
+ exit-address-family
+ exit
+ip route 172.16.0.0 255.255.0.0 Null0
+ipv6 route 2001:db8:a000::/36 Null0
+exit
+end

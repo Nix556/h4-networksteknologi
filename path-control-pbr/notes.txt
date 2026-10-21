@@ -1,3 +1,8 @@
+PBR (policy-based routing) bestemmer hvilken route trafikken skal tage ud fra en regel. OSPF vælger normalt den hurtigste route via metric, men PBR kan overwrite det.
+Alt trafik fra 10.10.2.0 netværket bliver sendt direkte til RT03 gennem serial mellem RT01 og RT03 i stedet for at gå gennem RT02.
+
+--------
+
 show ip ospf neighbor
 show ip protocols
 show ip route ospf

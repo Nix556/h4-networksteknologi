@@ -1,3 +1,8 @@
+Multiarea OSPFv3 deler netværket op i flere areas for at gøre routing mere overskueligt. 
+Der konfigureres OSPFv3 på RT01, RT02, RT03, SW01 og SW02, så de kan dele routes via IPv4 og IPv6. Der arbejdes også med at samle routes, gøre interfaces passive og konfigurere default routes.
+
+--------
+
 show ipv6 cef
 show ipv6 route ospf
 show ipv6 neighbors

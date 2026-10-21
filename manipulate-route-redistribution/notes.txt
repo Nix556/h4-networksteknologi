@@ -1,3 +1,8 @@
+Route redistribution gør det muligt for OSPF og EIGRP at snakke sammen, og dele routes med hinanden. 
+RT02 sørger for, at de to routingprotokoller kan dele deres routes, så alle netværk kan finde vej til hinanden. Der ændres også fra E2 til E1, så OSPF tager højde for både den eksterne metric og den interne distance.
+
+--------
+
 show ospfv3 neighbor
 show ip route ospfv3
 show ipv6 route ospf

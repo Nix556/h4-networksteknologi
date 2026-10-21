@@ -1,3 +1,8 @@
+Advanced EIGRP bruges til at gøre routing mere effektiv og stabil, så netværket hurtigere kan håndtere fejl. 
+I opgaven konfigureres alternative ruter, timere, route summarization, EIGRP Stub og filtrering af ruter for at forbedre netværkets performance og styre, hvilke ruter der deles mellem routerne.
+
+--------
+
 debug eigrp packets                 # viser EIGRP-pakker i realtid, fx Hello-pakker mellem naboer
 show ip eigrp traffic               # viser statistik over EIGRP-pakker sendt og modtaget
 show ip eigrp topology              # viser kendte ruter og de bedste ruter til netværk

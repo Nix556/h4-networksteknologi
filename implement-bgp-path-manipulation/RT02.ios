@@ -48,3 +48,5 @@ router bgp 500
  neighbor 2001:db8:acad:1012::1 activate
  neighbor 2001:db8:acad:1023::3 activate
  exit-address-family
+ exit
+end

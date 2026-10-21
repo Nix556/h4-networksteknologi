@@ -1,0 +1,12 @@
+eBGP og iBGP bruges til at udveksle ruter mellem og inden for autonome systemer, så netværk kan kommunikere med hinanden. 
+BGP konfigureres for IPv4 og IPv6 samt filtrering af ruter for at styre, hvilke netværk der deles, og forhindre AS 65000 i at fungere som transit-AS.
+
+--------
+
+show ip bgp summary
+show bgp ipv6 unicast summary
+show ip bgp neighbors
+show bgp ipv4 unicast
+show bgp ipv6 unicast
+show ip route bgp
+show ipv6 route bgp

@@ -1,0 +1,39 @@
+enable
+configure terminal
+hostname RT03
+no ip domain lookup
+ipv6 unicast-routing
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+  exit
+line vty 0 4
+ privilege level 15
+ password cisco123
+ exec-timeout 0 0
+ logging synchronous
+ login
+ exit
+interface loopback 0
+ ip address 192.168.3.1 255.255.255.0
+ ipv6 address fe80::3:2 link-local
+ ipv6 address 2001:db8:acad:3000::1/64
+ ospfv3 network point-to-point
+ ospfv3 100 ipv4 area 0
+ ospfv3 100 ipv6 area 0
+ no shutdown
+ exit
+interface s0/1/0
+ ip address 10.1.3.2 255.255.255.0
+ ipv6 address fe80::3:1 link-local
+ ipv6 address 2001:db8:acad:1013::2/64
+ ospfv3 100 ipv4 area 0
+ ospfv3 100 ipv6 area 0
+ no shutdown
+ exit
+router ospfv3 100
+ router-id 3.3.3.3
+ address-family ipv4 unicast
+ exit-address-family
+ address-family ipv6 unicast
+ exit-address-family

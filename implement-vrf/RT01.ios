@@ -1,0 +1,16 @@
+enable
+configure terminal
+hostname RT01
+no ip domain lookup
+ipv6 unicast-routing
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+ exit
+line vty 0 4
+ privilege level 15
+ password cisco123
+ exec-timeout 0 0
+ logging synchronous
+ login
+ exit

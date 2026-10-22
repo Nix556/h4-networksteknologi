@@ -1,0 +1,10 @@
+
+
+--------
+
+show bgp ipv4 unicast summary
+show bgp ipv6 unicast summary
+show ip route bgp
+show ipv6 route bgp
+show bgp ipv4 unicast
+show bgp ipv6 unicast

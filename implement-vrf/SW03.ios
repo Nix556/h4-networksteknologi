@@ -1,0 +1,38 @@
+enable
+configure terminal
+hostname A1
+no ip domain lookup
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+ exit
+line vty 0 4
+ privilege level 15
+ password cisco123
+ exec-timeout 0 0
+ logging synchronous
+ login
+ exit
+interface range g1/0/1-24, g1/1/1-4, g0/0
+ shutdown
+ exit
+vlan 5
+ name D1
+ exit
+vlan 8
+ name D2
+ exit
+interface g1/0/11
+ switchport mode trunk
+ switchport nonegotiate
+ no shutdown
+ exit
+interface g1/0/1
+ switchport mode access
+ switchport access vlan 5
+ no shutdown
+ exit
+interface g1/0/3
+ switchport mode access
+ switchport access vlan 8
+ no shutdown

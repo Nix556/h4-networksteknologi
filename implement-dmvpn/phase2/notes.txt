@@ -1,0 +1,5 @@
+show dmvpn
+show dmvpn detail
+show ip nhrp
+show ip nhrp detail
+show interface tunnel 1

@@ -14,3 +14,86 @@ line vty 0 4
  logging synchronous
  login
  exit
+vrf definition CustomerA
+ address-family ipv4
+ address-family ipv6
+ exit
+ vrf definition CustomerB
+ address-family ipv4
+ address-family ipv6
+ exit
+ exit
+interface g0/0/0
+ vrf forwarding CustomerA
+ ip address 10.1.2.1 255.255.255.0
+ ipv6 address fe80::1:1 link-local
+ ipv6 address 2001:db8:acad:1012::1/64
+ no shutdown
+ exit
+interface s0/1/0
+ vrf forwarding CustomerA
+ ip address 10.1.3.1 255.255.255.0
+ ipv6 address fe80::1:4 link-local
+ ipv6 address 2001:db8:acad:1013::1/64
+ no shutdown
+ exit
+interface g0/0/1
+ no shutdown
+ exit
+interface g0/0/1.5
+ encapsulation dot1q 5
+ vrf forwarding CustomerB
+ ip address 10.1.2.1 255.255.255.0
+ ipv6 address fe80::1:2 link-local
+ ipv6 address 2001:db8:acad:1012::1/64
+ exit
+interface g0/0/1.8
+ encapsulation dot1q 8
+ vrf forwarding CustomerB
+ ip address 10.1.3.1 255.255.255.0
+ ipv6 address fe80::1:3 link-local
+ ipv6 address 2001:db8:acad:1013::1/64
+ exit
+interface Loopback1
+ description simulated access to external networks
+ vrf forwarding CustomerA
+ ip address 64.100.1.1 255.255.255.252
+ ipv6 address 2001:db8:acad:64:100:1::1/64
+ interface Loopback2
+ description simulated access to external networks
+ vrf forwarding CustomerB
+ ip address 64.100.1.1 255.255.255.252
+ ipv6 address 2001:db8:acad:64:100:1::1/64
+ exit
+interface GigabitEthernet0/0/0
+ ospfv3 100 ipv4 area 0
+ ospfv3 100 ipv6 area 0
+ interface Serial0/1/0
+ ospfv3 100 ipv4 area 0
+ ospfv3 100 ipv6 area 0
+ router ospfv3 100
+ router-id 1.1.1.1
+ address-family ipv4 unicast vrf CustomerA
+ capability vrf-lite
+ exit-address-family
+ address-family ipv6 unicast vrf CustomerA
+ capability vrf-lite
+ exit-address-family
+ exit
+ip route vrf CustomerA 0.0.0.0 0.0.0.0 lo 1 64.100.1.2
+ipv6 route vrf CustomerA ::/0 lo 1 2001:db8:acad:64:100:1::2
+ip route vrf CustomerB 0.0.0.0 0.0.0.0 lo 2 64.100.1.2
+ipv6 route vrf CustomerB ::/0 lo 2 2001:db8:acad:64:100:1::2
+router ospfv3 100
+ address-family ipv4 unicast vrf CustomerA
+ default-information originate
+ exit-address-family
+ address-family ipv6 unicast vrf CustomerA
+ default-information originate
+ exit-address-family
+ router ospfv3 200
+ address-family ipv4 unicast vrf CustomerB
+ default-information originate
+ exit-address-family
+ exit
+end

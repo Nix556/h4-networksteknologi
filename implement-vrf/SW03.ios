@@ -36,3 +36,5 @@ interface g1/0/3
  switchport mode access
  switchport access vlan 8
  no shutdown
+ exit
+end

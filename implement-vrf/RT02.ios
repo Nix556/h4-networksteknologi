@@ -37,3 +37,5 @@ router ospfv3 100
  exit-address-family
  address-family ipv6 unicast
  exit-address-family
+ exit
+end

@@ -1,7 +1,9 @@
 enable
 configure terminal
-hostname A1
+hostname D2
 no ip domain lookup
+ip routing
+ipv6 unicast-routing
 line con 0
  exec-timeout 0 0
  logging synchronous
@@ -16,25 +18,36 @@ line vty 0 4
 interface range g1/0/1-24, g1/1/1-4, g0/0
  shutdown
  exit
-vlan 5
- name D1
- exit
-vlan 8
- name D2
- exit
-interface g1/0/11
- switchport mode trunk
- switchport nonegotiate
+interface g1/0/5
+ no switchport
+ ip address 10.1.3.2 255.255.255.0
+ ipv6 address fe80::d2:1 link-local
+ ipv6 address 2001:db8:acad:1013::2/64
+ ospfv3 200 ipv4 area 0
+ ospfv3 200 ipv6 area 0
  no shutdown
  exit
-interface g1/0/1
+vlan 11
+ name LOCAL_VLAN
+ exit
+interface vlan 11
+ ip address 192.168.3.1 255.255.255.0
+ ipv6 address fe80::d2:2 link-local
+ ipv6 address 2001:db8:acad:3000::1/64
+ ospfv3 200 ipv4 area 0
+ ospfv3 200 ipv6 area 0
+ no shutdown
+ exit
+interface g1/0/23
  switchport mode access
- switchport access vlan 5
+ switchport access vlan 11
  no shutdown
  exit
-interface g1/0/3
- switchport mode access
- switchport access vlan 8
- no shutdown
+router ospfv3 200
+ router-id 5.5.5.5
+ address-family ipv4 unicast
+ exit-address-family
+ address-family ipv6 unicast
+ exit-address-family
  exit
 end

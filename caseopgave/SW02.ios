@@ -1,0 +1,19 @@
+enable
+configure terminal
+hostname SW02
+no ip domain lookup
+vlan 20
+ name FILIAL-MANAGEMENT
+ exit
+interface GigabitEthernet1/0/1
+ description Forbindelse til RT02
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+ exit
+interface vlan 20
+ description SW02 management
+ ip address 10.20.20.2 255.255.255.0
+ no shutdown
+ exit
+ip default-gateway 10.20.20.1

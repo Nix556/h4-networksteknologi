@@ -1,0 +1,19 @@
+enable
+configure terminal
+hostname SW03
+no ip domain lookup
+vlan 30
+ name DC-MANAGEMENT
+ exit
+interface GigabitEthernet1/0/1
+ description Forbindelse til RT03
+ switchport mode access
+ switchport access vlan 30
+ no shutdown
+ exit
+interface vlan 30
+ description SW03 management
+ ip address 10.30.30.2 255.255.255.0
+ no shutdown
+ exit
+ip default-gateway 10.30.30.1

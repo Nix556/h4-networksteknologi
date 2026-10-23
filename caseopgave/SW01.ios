@@ -1,0 +1,46 @@
+enable
+configure terminal
+hostname SW01
+no ip domain lookup
+vlan 10
+ name HQ-MANAGEMENT
+ exit
+vlan 912
+ name WAN-RT01-RT02
+ exit
+vlan 913
+ name WAN-RT01-RT03
+ exit
+vlan 923
+ name WAN-RT02-RT03
+ exit
+interface GigabitEthernet1/0/1
+ description WAN-trunk til RT01
+ switchport mode trunk
+ switchport trunk allowed vlan 912,913
+ no shutdown
+ exit
+interface GigabitEthernet1/0/2
+ description WAN-trunk til RT02
+ switchport mode trunk
+ switchport trunk allowed vlan 912,923
+ no shutdown
+ exit
+interface GigabitEthernet1/0/3
+ description WAN-trunk til RT03
+ switchport mode trunk
+ switchport trunk allowed vlan 913,923
+ no shutdown
+ exit
+interface GigabitEthernet1/0/4
+ description HQ management til RT01
+ switchport mode access
+ switchport access vlan 10
+ no shutdown
+ exit
+interface vlan 10
+ description SW01 management
+ ip address 10.10.10.2 255.255.255.0
+ no shutdown
+ exit
+ip default-gateway 10.10.10.1

@@ -5,6 +5,9 @@ no ip domain lookup
 vlan 10
  name HQ-MANAGEMENT
  exit
+vlan 110
+ name HQ-DRIFTSLEDELSE
+ exit
 vlan 912
  name WAN-RT01-RT02
  exit
@@ -33,12 +36,12 @@ interface GigabitEthernet1/0/3
  no shutdown
  exit
 interface GigabitEthernet1/0/4
- description HQ management til RT01
- switchport mode access
- switchport access vlan 10
+ description HQ trunk til RT01
+ switchport mode trunk
+ switchport trunk allowed vlan 10,110
  no shutdown
  exit
-interface vlan 10
+interface Vlan10
  description SW01 management
  ip address 10.10.10.2 255.255.255.0
  no shutdown

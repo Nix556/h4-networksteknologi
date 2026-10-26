@@ -5,13 +5,16 @@ no ip domain lookup
 vlan 20
  name FILIAL-MANAGEMENT
  exit
+vlan 120
+ name SENSORER
+ exit
 interface GigabitEthernet1/0/1
- description Forbindelse til RT02
- switchport mode access
- switchport access vlan 20
+ description Trunk til RT02 - filial
+ switchport mode trunk
+ switchport trunk allowed vlan 20,120
  no shutdown
  exit
-interface vlan 20
+interface Vlan20
  description SW02 management
  ip address 10.20.20.2 255.255.255.0
  no shutdown

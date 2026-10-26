@@ -3,21 +3,36 @@ configure terminal
 hostname RT02
 no ip domain lookup
 interface GigabitEthernet0/0/0
- description WAN-interface
+ description WAN-trunk til SW1
+ no ip address
  no shutdown
  exit
 interface GigabitEthernet0/0/0.912
- description WAN til RT01 - VLAN 912
+ description WAN til RT01
  encapsulation dot1Q 912
  ip address 10.255.12.2 255.255.255.252
+ no shutdown
  exit
 interface GigabitEthernet0/0/0.923
- description WAN til RT03 - VLAN 923
+ description Primær WAN til RT03
  encapsulation dot1Q 923
  ip address 10.255.23.1 255.255.255.252
+ no shutdown
  exit
 interface GigabitEthernet0/0/1
- description Filial managementnet
+ description Trunk til SW2 - filial
+ no ip address
+ no shutdown
+ exit
+interface GigabitEthernet0/0/1.20
+ description Filial management
+ encapsulation dot1Q 20
  ip address 10.20.20.1 255.255.255.0
+ no shutdown
+ exit
+interface GigabitEthernet0/0/1.120
+ description Sensor VLAN
+ encapsulation dot1Q 120
+ ip address 10.20.120.1 255.255.255.0
  no shutdown
  exit

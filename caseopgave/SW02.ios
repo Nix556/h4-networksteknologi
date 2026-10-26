@@ -14,6 +14,14 @@ interface GigabitEthernet1/0/1
  switchport trunk allowed vlan 20,120
  no shutdown
  exit
+interface range GigabitEthernet1/0/2-24
+ description UBRUGT
+ shutdown
+ exit
+interface range GigabitEthernet1/1/1-4
+ description UBRUGT
+ shutdown
+ exit
 interface Vlan20
  description SW02 management
  ip address 10.20.20.2 255.255.255.0

@@ -32,3 +32,11 @@ interface GigabitEthernet0/0/1.110
  encapsulation dot1Q 110
  ip address 10.10.110.1 255.255.255.0
  exit
+router ospf 10
+ router-id 1.1.1.1
+ passive-interface default
+ no passive-interface GigabitEthernet0/0/0.912
+ no passive-interface GigabitEthernet0/0/0.913
+ network 10.255.12.0 0.0.0.3 area 0
+ network 10.255.13.0 0.0.0.3 area 0
+ exit

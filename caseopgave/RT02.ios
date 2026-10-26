@@ -44,3 +44,9 @@ router ospf 10
  network 10.255.12.0 0.0.0.3 area 0
  network 10.255.23.0 0.0.0.3 area 0
  exit
+router bgp 65002
+ bgp log-neighbor-changes
+ neighbor 10.255.12.1 remote-as 65001
+ neighbor 10.255.23.2 remote-as 65003
+ network 10.20.120.0 mask 255.255.255.0
+ exit

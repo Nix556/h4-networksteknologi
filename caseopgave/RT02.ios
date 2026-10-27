@@ -60,7 +60,7 @@ router ospf 10
  exit
 ! vælger den sensortrafik, der skal styres via RT01
 ip access-list extended SENSOR-PBR-TEST
- permit ip host 10.20.120.10 host 10.30.130.20
+ permit ip host 10.20.120.10 host 10.30.130.10
  exit
 ! send den valgte trafik via RT01
 route-map SENSOR-PBR permit 10

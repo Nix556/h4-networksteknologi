@@ -38,3 +38,5 @@
 | Sensor-test | Netkort | 120 | 10.20.120.10 | 10.20.120.0/24 | 255.255.255.0 | 10.20.120.1 | Kilde til telemetritest |
 | R3 | Gi0/0/1.130 | 130 | 10.30.130.1 | 10.30.130.0/24 | 255.255.255.0 | – | DC-dataopsamling |
 | DC-samler | Netkort | 130 | 10.30.130.10 | 10.30.130.0/24 | 255.255.255.0 | 10.30.130.1 | Destination for telemetri |
+
+![image](zhej.jpg)

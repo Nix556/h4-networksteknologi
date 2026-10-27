@@ -11,6 +11,7 @@ interface GigabitEthernet0/0/0.912
  description WAN til RT02
  encapsulation dot1Q 912
  ip address 10.255.12.1 255.255.255.252
+ ip ospf cost 100
  exit
 interface GigabitEthernet0/0/0.913
  description WAN til RT03
@@ -32,6 +33,19 @@ interface GigabitEthernet0/0/1.110
  encapsulation dot1Q 110
  ip address 10.10.110.1 255.255.255.0
  exit
+ip prefix-list BGP-TO-OSPF seq 5 permit 10.30.130.0/24
+ip prefix-list OSPF-TO-BGP seq 5 permit 10.20.20.0/24
+ip prefix-list BGP-OUT-RT03 seq 5 permit 10.20.20.0/24
+route-map BGP-TO-OSPF permit 10
+ match ip address prefix-list BGP-TO-OSPF
+ set tag 65001
+ exit
+route-map OSPF-TO-BGP deny 10
+ match tag 65001
+ exit
+route-map OSPF-TO-BGP permit 20
+ match ip address prefix-list OSPF-TO-BGP
+ exit
 router ospf 10
  router-id 1.1.1.1
  passive-interface default
@@ -39,10 +53,12 @@ router ospf 10
  no passive-interface GigabitEthernet0/0/0.913
  network 10.255.12.0 0.0.0.3 area 0
  network 10.255.13.0 0.0.0.3 area 0
+ network 10.10.110.0 0.0.0.255 area 0
+ redistribute bgp 65001 subnets metric 10 metric-type 1 route-map BGP-TO-OSPF
  exit
 router bgp 65001
  bgp log-neighbor-changes
- neighbor 10.255.12.2 remote-as 65002
  neighbor 10.255.13.2 remote-as 65003
- network 10.10.110.0 mask 255.255.255.0
+ neighbor 10.255.13.2 prefix-list BGP-OUT-RT03 out
+ redistribute ospf 10 match internal external 1 external 2 route-map OSPF-TO-BGP
  exit

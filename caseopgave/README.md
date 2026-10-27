@@ -38,10 +38,3 @@
 | Sensor-test | Netkort | 120 | 10.20.120.10 | 10.20.120.0/24 | 255.255.255.0 | 10.20.120.1 | Kilde til telemetritest |
 | R3 | Gi0/0/1.130 | 130 | 10.30.130.1 | 10.30.130.0/24 | 255.255.255.0 | – | DC-dataopsamling |
 | DC-samler | Netkort | 130 | 10.30.130.10 | 10.30.130.0/24 | 255.255.255.0 | 10.30.130.1 | Destination for telemetri |
-
-### Testnet til routing
-
-| Enhed | Interface | IP-adresse | Netværksadresse | Formål |
-| --- | --- | --- | --- | --- |
-| R2 | Loopback250 | 10.20.250.1 | 10.20.250.0/24 | Test af OSPF til BGP
-| R2 | Loopback251 | 10.20.251.1 | 10.20.251.0/24 | Uønskede test prefix

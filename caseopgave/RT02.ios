@@ -7,12 +7,15 @@ interface GigabitEthernet0/0/0
  no ip address
  no shutdown
  exit
+! WAN til RT01 (reservevej), højere OSPF-cost for at foretrække RT03
 interface GigabitEthernet0/0/0.912
  description WAN til RT01
  encapsulation dot1Q 912
  ip address 10.255.12.2 255.255.255.252
+ ip ospf cost 100
  no shutdown
  exit
+! WAN direkte til RT03 (normal vej)
 interface GigabitEthernet0/0/0.923
  description Primær WAN til RT03
  encapsulation dot1Q 923
@@ -36,6 +39,7 @@ interface GigabitEthernet0/0/1.120
  ip address 10.20.120.1 255.255.255.0
  no shutdown
  exit
+! sensorer må nå DC, men ikke andre interne net
 ip access-list extended SENSOR-IN
  permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
  deny ip 10.20.120.0 0.0.0.255 10.0.0.0 0.255.255.255
@@ -53,4 +57,16 @@ router ospf 10
  network 10.255.23.0 0.0.0.3 area 0
  network 10.20.20.0 0.0.0.255 area 0
  network 10.20.120.0 0.0.0.255 area 0
+ exit
+! vælger den sensortrafik, der skal styres via RT01
+ip access-list extended SENSOR-PBR-TEST
+ permit ip host 10.20.120.10 host 10.30.130.20
+ exit
+! send den valgte trafik via RT01
+route-map SENSOR-PBR permit 10
+ match ip address SENSOR-PBR-TEST
+ set ip next-hop 10.255.12.1
+ exit
+interface GigabitEthernet0/0/1.120
+ ip policy route-map SENSOR-PBR
  exit

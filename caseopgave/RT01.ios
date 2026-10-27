@@ -11,7 +11,6 @@ interface GigabitEthernet0/0/0.912
  description WAN til RT02
  encapsulation dot1Q 912
  ip address 10.255.12.1 255.255.255.252
- ip ospf cost 100
  exit
 interface GigabitEthernet0/0/0.913
  description WAN til RT03
@@ -33,8 +32,11 @@ interface GigabitEthernet0/0/1.110
  encapsulation dot1Q 110
  ip address 10.10.110.1 255.255.255.0
  exit
+! tillad kun DC's telemetrinettet fra BGP til OSPF
 ip prefix-list BGP-TO-OSPF seq 5 permit 10.30.130.0/24
+! tillad kun filialens managementnet fra OSPF til BGP
 ip prefix-list OSPF-TO-BGP seq 5 permit 10.20.20.0/24
+! begræns hvilke ruter RT01 annoncerer til RT03
 ip prefix-list BGP-OUT-RT03 seq 5 permit 10.20.20.0/24
 route-map BGP-TO-OSPF permit 10
  match ip address prefix-list BGP-TO-OSPF
@@ -54,11 +56,13 @@ router ospf 10
  network 10.255.12.0 0.0.0.3 area 0
  network 10.255.13.0 0.0.0.3 area 0
  network 10.10.110.0 0.0.0.255 area 0
+ ! send kun godkendte BGP ruter til OSPF
  redistribute bgp 65001 subnets metric 10 metric-type 1 route-map BGP-TO-OSPF
  exit
 router bgp 65001
  bgp log-neighbor-changes
  neighbor 10.255.13.2 remote-as 65003
  neighbor 10.255.13.2 prefix-list BGP-OUT-RT03 out
+ ! send kun godkendte OSPF ruter ind i BGP
  redistribute ospf 10 match internal external 1 external 2 route-map OSPF-TO-BGP
  exit

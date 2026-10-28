@@ -43,6 +43,7 @@ router ospf 10
  no passive-interface GigabitEthernet0/0/0.923
  network 10.255.13.0 0.0.0.3 area 0
  network 10.255.23.0 0.0.0.3 area 0
+ network 10.30.130.0 0.0.0.255 area 0
  exit
 router bgp 65003
  bgp log-neighbor-changes

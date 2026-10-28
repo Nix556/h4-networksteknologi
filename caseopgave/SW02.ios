@@ -14,7 +14,14 @@ interface GigabitEthernet1/0/1
  switchport trunk allowed vlan 20,120
  no shutdown
  exit
-interface range GigabitEthernet1/0/2-24
+interface GigabitEthernet1/0/2
+ description Sensor-klient
+ switchport mode access
+ switchport access vlan 120
+ spanning-tree portfast
+ no shutdown
+ exit
+interface range GigabitEthernet1/0/3-24
  description UBRUGT
  shutdown
  exit

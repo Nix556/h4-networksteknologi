@@ -41,13 +41,23 @@ interface GigabitEthernet0/0/1.120
  exit
 ! sensorer må nå DC, men ikke andre interne net
 ip access-list extended SENSOR-IN
- permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
  5 permit ip 10.20.120.0 0.0.0.255 host 10.20.120.1
- deny ip 10.20.120.0 0.0.0.255 10.0.0.0 0.255.255.255
- permit ip 10.20.120.0 0.0.0.255 any
+ 10 permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
+ 20 deny ip 10.20.120.0 0.0.0.255 10.0.0.0 0.255.255.255
+ 30 permit ip 10.20.120.0 0.0.0.255 any
  exit
 interface GigabitEthernet0/0/1.120
  ip access-group SENSOR-IN in
+ exit
+ip access-list extended SENSOR-PBR-MATCH
+ permit ip host 10.20.120.10 10.30.130.0 0.0.0.255
+ exit
+route-map SENSOR-PBR permit 10
+ match ip address SENSOR-PBR-MATCH
+ set ip next-hop 10.255.12.1
+ exit
+interface GigabitEthernet0/0/1.120
+ ip policy route-map SENSOR-PBR
  exit
 router ospf 10
  router-id 2.2.2.2
@@ -58,14 +68,4 @@ router ospf 10
  network 10.255.23.0 0.0.0.3 area 0
  network 10.20.20.0 0.0.0.255 area 0
  network 10.20.120.0 0.0.0.255 area 0
- exit
-ip access-list extended SENSOR-PBR-MATCH
- permit ip host 10.20.120.10 host 10.30.130.0 0.0.0.255
- exit
-route-map SENSOR-PBR permit 10
- match ip address SENSOR-PBR-MATCH
- set ip next-hop 10.255.12.1
- exit
-interface GigabitEthernet0/0/1.120
- ip policy route-map SENSOR-PBR
  exit

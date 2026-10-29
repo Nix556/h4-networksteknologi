@@ -81,7 +81,7 @@ route-map RM-PBR-SENSOR permit 10
  exit
 ip local policy route-map RM-PBR-SENSOR
 interface Loopback0
- description Router-ID / transport / IPsec-endepunkt
+ description Router-ID / transport / IPsec-endpoint
  ip address 10.255.255.2 255.255.255.255
  exit
 interface Tunnel0

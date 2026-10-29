@@ -52,6 +52,15 @@ Vi er driftsteamet hos Vindkraft Drift A/S: hovedkontoret (HQ) styre driften, fi
 
 Loopback0-adresserne ligger i 10.255.255.0/24. Det er uden for de tre sites (10.10, 10.20, 10.30). Det overlapper hverken med WAN-/30-nettene (10.255.12/13/23.0) eller andre net.
 
+### Tunnelnet (IPsec)
+
+| Enhed | Interface | IP-adresse | Netværksadresse | Subnetmaske | Kommentar |
+| --- | --- | --- | --- | --- | --- |
+| RT02 | Tunnel0 | 10.255.100.1 | 10.255.100.0/29 | 255.255.255.248 | IPsec-tunnel mod RT03 |
+| RT03 | Tunnel0 | 10.255.100.2 | 10.255.100.0/29 | 255.255.255.248 | IPsec-tunnel mod RT02 |
+
+Tunnelnettet bruger kun to adresser (.1 og .2). Vi har valgt en /29, så der er plads til flere endepunkter senere (.3-.6), fx hvis RT01 skal med. Nettet ligger sammen med de andre infrastrukturnet i 10.255.x.x og overlapper ikke med noget. Det er ikke med i OSPF eller BGP.
+
 ![image](zhej.jpg)
 
 ### Switchporte og VLAN
@@ -74,6 +83,7 @@ Loopback0-adresserne ligger i 10.255.255.0/24. Det er uden for de tre sites (10.
 - **Tjenestenet /24:** alle tre tjenestenet er /24. Det giver plads til ca. 250 enheder pr. net, det passer til de eksisterende /24 managementnet og gør ACL-regler og prefix-lister enkle at læse og forklare.
 - **Separate VLAN:** sensor (120), DC-samler (130) og HQ-admin (110) ligger i hvert deres VLAN, adskilt fra management (10/20/30). Så kan trafik mellem zonerne styres med Layer 3-regler på routerne (V04/V05).
 - **Loopbacks:** unikke /32-adresser som matcher med router-ID på hver router og fungere som endpoints.
+- **Tunnelnet /29:** eget net til IPsec-tunnelen, så tunnelen ikke deler adresser med WAN eller tjenestenet.
 
 ## 2. Design og teknologivalg
 
@@ -110,22 +120,31 @@ Redistribution er **bevidst envejs: BGP → OSPF**, plus `connected → OSPF` fo
 Filterpolitik og forhindring af route feedback:
 
 - **Prefix-lister + route-maps** begrænser redistributionen til de to nødvendige præfikser. Alt andet (WAN, management, loopbacks, testpræfiks) rammer den implicitte deny.
-- **Envejs-redistribution:** HQ-net og andre OSPF-ruter føres aldrig ind i BGP. Ellers ville RT03 lære HQ-net via BGP (AD 20) og vælge en suboptimal vej via R2.
+- **Envejs-redistribution:** HQ-net og andre OSPF-ruter føres aldrig ind i BGP. Ellers ville RT03 lære HQ-net via BGP (AD 20) og vælge en suboptimal vej via RT02.
 - **BGP in/out prefix-lister** (`PL-BGP-IN`/`PL-BGP-OUT`) sørger for, at hver router kun sender sine egne præfikser og kun modtager de forventede, så egne præfikser ikke kommer retur.
-- **Metrikker:** RT01 modtager samme præfiks fra to routere (metric 10 fra ejeren, metric 50 fra grænseroutere). R1 vælger altid ejeren, så der ikke opstår loops.
+- **Metrikker:** RT01 modtager samme præfiks fra to routere (metric 10 fra ejeren, metric 50 fra grænseroutere). RT01 vælger altid ejeren, så der ikke opstår loops.
 - **Tags** (10 = lokalt oprindelse, 65 = kom fra BGP) er mærkater, der gør det let at se herkomst i `show ip route`/OSPF-databasen. Skulle man senere redistribuere i den anden retning, kan man filtrere på dem.
 - **Testpræfikset** 10.30.250.0/24 er med vilje i BGP (seq 15 i `PL-BGP-OUT`/`PL-BGP-IN`), så vi kan vise, at det findes i BGP, men ikke bliver redistribueret til OSPF.
 
 ### V02: Telemetri med automatisk reservevej
 
-- **Normalt:** sensortrafik RT02 → RT03 går direkte over VLAN 923 (BGP-rute, AD 20).
-- **Ved fejl** (`shutdown` på RT02 Gi0/0/0.923) forsvinder BGP-ruten, og OSPF-ruten til samlernettet via RT01 (RT03 har lagt den i OSPF med `connected → OSPF`) overtager automatisk: RT02 → RT01 → RT03. Ingen manuel indgriben.
+- **Normalt:** sensortrafik RT02 → RT03 krypteres i IPsec-tunnelen (V06). Tunnelen er bygget mellem loopbacks, og ruten til loopbacken går direkte over VLAN 923 (BGP-rute, AD 20).
+- **Ved fejl** (`shutdown` på RT02 Gi0/0/0.923) forsvinder BGP-ruten, og OSPF-ruten via RT01 overtager automatisk. Tunnelen bliver oppe, fordi endepunkterne er de samme, og trafikken går nu RT02 → RT01 → RT03. Ingen manuel indgriben.
 - **Tilbage:** `no shutdown` genopretter BGP, som igen slår OSPF på administrativ distance.
 - **BFD** på 923 (100 ms × 3 = ca. 300 ms) sørger for, at **RT03** også opdager fejlen hurtigt. Uden BFD ville RT03 vente på BGP hold-time (9 s), fordi SW01-porten forbliver oppe, når kun RT02's subinterface lukkes.
 
 ### V03: Målrettet styring af sensortrafik (PBR)
 
-Policy-based routing (`RM-PBR-SENSOR`) rammer **kun** trafik fra sensornettet til samlernettet (`ACL-PBR-SENSOR`) og angiver next-hop-listen `10.255.23.2` (direkte), derefter `10.255.12.1` (via RT01). Al anden trafik (management, HQ osv.) bruger almindelig routing. Policyen ligger både på sensor-interfacet (`ip policy`, for rigtige PC'er) og som `ip local policy` (så router-sendte tests også rammer den).
+Policy-based routing sender **kun** telemetri ind i tunnelen. Al anden trafik (management, HQ osv.) bruger almindelig routing.
+
+| Router | Route-map | Rammer | Next-hop |
+| --- | --- | --- | --- |
+| RT02 | `RM-PBR-SENSOR` | Sensornet → samlernet | 10.255.100.2 (RT03 i tunnelen) |
+| RT03 | `RM-PBR-DC` | Samlernet → sensornet (svartrafik) | 10.255.100.1 (RT02 i tunnelen) |
+
+- Begge route-maps har `set interface Null0`. Hvis tunnelen er nede, bliver pakken droppet i stedet for at gå i klartekst.
+- Policyen ligger både på interfacet trafikken kommer ind på (`ip policy`, til de rigtige PC'er) og som `ip local policy` (så tests fra routeren også rammer den).
+- Vi bruger PBR og ikke en statisk rute, fordi en statisk rute (AD 1) ville slå BGP, og så stopper redistributionen fra V01.
 
 ### V04/V05: Segmentering og adgangskontrol
 
@@ -134,6 +153,7 @@ Policy-based routing (`RM-PBR-SENSOR`) rammer **kun** trafik fra sensornettet ti
 | `ACL-SENSOR-IN` | RT02 Gi0/0/1.120 inbound | Første forsvarslinje ved kilden: sensorer må kun nå samlernettet (og pinge deres egen gateway) |
 | `ACL-SENSOR-GUARD` | RT01 Gi0/0/0.912 inbound | Beskytter HQ (inkl. management) mod sensornet, også når trafik kommer via reservevejen |
 | `ACL-SENSOR-GUARD` | RT03 Gi0/0/0.913 og .923 inbound | Beskytter DC-management og andre DC-net på både primær- og reservevej |
+| `ACL-SENSOR-GUARD` | RT03 Tunnel0 inbound | Samme kontrol på trafikken, der kommer ud af tunnelen |
 
 Reglerne i guard-ACL'erne (i rækkefølge): kontrolplan (OSPF/BGP/BFD) tillades altid, derefter sensor → samlernet tilladt, sensor → HQ/filial/DC/transport nægtet, og til sidst alt andet tilladt (`permit ip any any`).
 
@@ -149,11 +169,11 @@ Vi har bevidst lagt kontrollen **flere steder**, så den også holder på reserv
 | eBGP (AD 20) slår OSPF (AD 110) | Deterministisk primær/reserve uden ekstra konfiguration |
 | Envejs-redistribution, prefix-lister og forskellige metrikker (10 vs 50) | Ingen route feedback og ingen loops. De tilladte præfikser er uændrede |
 
-Sikker tilbageførsel: `no shutdown` på RT02 Gi0/0/0.923. BFD og BGP genetableres, BGP-ruten (AD 20) erstatter OSPF-ruten, og PBR vælger igen det direkte next-hop.
+Sikker tilbageførsel: `no shutdown` på RT02 Gi0/0/0.923. BFD og BGP genetableres, og BGP-ruten (AD 20) erstatter OSPF-ruten. Tunnelen kører hele tiden.
 
 ## 3. Test og fremvisning
 
-**Test-kilder:** PC'erne (sensor-test, DC-samler, HQ-admin) er de rigtige tests. Router-sendte tests bruger `source`, fx `ping 10.30.130.10 source 10.20.120.1` på R2. Husk, at en router-sendt test ikke passerer routerens egen inbound-ACL, men passerer R1/R3's guard-ACL'er.
+**Test-kilder:** PC'erne (sensor-test, DC-samler, HQ-admin) er de rigtige tests. Tests fra routeren bruger `source`, fx `ping 10.30.130.10 source 10.20.120.1` på RT02. Husk, at en test fra routeren ikke passerer routerens egen inbound-ACL, men den passerer RT01/RT03's guard-ACL'er.
 
 ### Fremvisningsrækkefølge
 
@@ -162,11 +182,11 @@ Sikker tilbageførsel: `no shutdown` på RT02 Gi0/0/0.923. BFD og BGP genetabler
 3. **V01:** redistribution og testpræfiks.
 4. **V05:** adgangskontrol (positiv og to negative tests).
 5. **V03:** PBR og upåvirket kontroltrafik.
-6. **V02:** fejltest (før, under, efter).
-7. **V04:** segmentering og management-adgang.
-8. **V07:** forklar optimeringen med output fra fejltesten.
-9. **Gemt konfiguration og tilbageførsel.**
-10. *(V06 IPsec, når den er lavet.)*
+6. **V06:** IPsec (tællere før og efter).
+7. **V02:** fejltest (før, under, efter), og vis at IPsec stadig virker.
+8. **V04:** segmentering og management-adgang.
+9. **V07:** forklar optimeringen med output fra fejltesten.
+10. **Gemt konfiguration og tilbageførsel.**
 
 ### V01: BGP + OSPF og redistribution
 
@@ -174,7 +194,7 @@ Sikker tilbageførsel: `no shutdown` på RT02 Gi0/0/0.923. BFD og BGP genetabler
 | --- | --- | --- |
 | RT02 | `show ip bgp summary` | Nabo 10.255.23.2 (AS 65003) i Established |
 | RT01 | `show ip ospf neighbor` | To naboer (RT02 og RT03) i Full |
-| RT02 og RT03 | `show ip ospf neighbor` | En nabo hver (R1) i Full |
+| RT02 og RT03 | `show ip ospf neighbor` | En nabo hver (RT01) i Full |
 | RT02 | `show ip bgp 10.30.250.0` | Testpræfikset **findes** i BGP |
 | RT01 | `show ip route 10.30.250.0` | `Network not in table`, altså **ikke** redistribueret |
 | RT01 | `show ip route 10.30.130.0` | `O E2` med tag 10 via RT03 (redistribueret) |
@@ -196,22 +216,34 @@ Sikker tilbageførsel: `no shutdown` på RT02 Gi0/0/0.923. BFD og BGP genetabler
 | Negativ 1 | `ping 10.10.110.10` (HQ-admin) | Afvist |
 | Negativ 2 | `ping 10.10.10.1` (HQ-management) | Afvist |
 
-Vis bagefter `show access-lists` (R2 `ACL-SENSOR-IN`, RT01/RT03 `ACL-SENSOR-GUARD`), så tællerne på permit- og deny-linjerne tydeligt stiger, og `show ip interface Gi0/0/1.120` (viser `Inbound access list is ACL-SENSOR-IN`).
+Vis bagefter `show access-lists` (RT02 `ACL-SENSOR-IN`, RT01/RT03 `ACL-SENSOR-GUARD`), så tællerne på permit- og deny-linjerne tydeligt stiger, og `show ip interface Gi0/0/1.120` (viser `Inbound access list is ACL-SENSOR-IN`).
 
 ### V03: PBR og upåvirket kontroltrafik
 
 | Test | Kommando | Forventet |
 | --- | --- | --- |
 | Policy-match | Ping fra sensor-test-PC til 10.30.130.10, derefter RT02: `show route-map RM-PBR-SENSOR` | Match-tæller stiger |
-| Rutevalg | RT02: `show ip route 10.30.130.0` | BGP-rute via 10.255.23.2 |
+| Svartrafik | RT03: `show route-map RM-PBR-DC` | Match-tæller stiger |
 | Upåvirket kontroltrafik | RT02: `ping 10.30.30.1 source 10.20.20.1` | Virker, og PBR-tælleren **ændrer sig ikke** |
+
+### V06: IPsec
+
+| Trin | Kommando | Forventet |
+| --- | --- | --- |
+| 1. SA'er | RT02: `show crypto ikev2 sa` og `show crypto session detail` | IKEv2-SA i `READY`, session `UP-ACTIVE` mod 10.255.255.3 |
+| 2. Før | RT02: `show crypto ipsec sa \| include #pkts` | Notér encaps/decaps-tællerne |
+| 3. Skab trafik | Sensor-test-PC: `ping 10.30.130.10 -n 50` | Ping virker |
+| 4. Efter | RT02 og RT03: `show crypto ipsec sa \| include #pkts` | Encaps stiger på RT02 og decaps på RT03 |
+| 5. Underlay | RT02: `show ip route 10.255.255.3` | Ruten til endepunktet går via transportnettet (BGP/OSPF), **ikke** via Tunnel0 |
 
 ### V02: Telemetri med automatisk reservevej
 
+Tunnelen skjuler hoppene, så et traceroute fra sensor-PC'en viser kun tunnelen (10.255.100.2). Vejen ser vi i stedet på tunnelens endepunkter med `traceroute 10.255.255.3 source Loopback0` på RT02.
+
 | Fase | Handling | Kommandoer og forventet |
 | --- | --- | --- |
-| **Før** | – | RT02: `show ip route 10.30.130.0` viser `B` via 10.255.23.2. Traceroute fra sensor-PC til 10.30.130.10: RT02 → RT03. Ping virker. |
-| **Under** | RT02: `conf t`, `interface Gi0/0/0.923`, `shutdown` | RT02: `show ip route 10.30.130.0` viser `O E2` via 10.255.12.1. Traceroute: RT02 → **RT01** → RT03. Ping virker stadig. Gentag de to negative tests (stadig afvist). `show bfd neighbors` viser, at BFD-sessionen er faldet. |
+| **Før** | – | RT02: `show ip route 10.255.255.3` viser `B` via 10.255.23.2. `traceroute 10.255.255.3 source Loopback0`: RT02 → RT03. Ping fra sensor-PC virker. |
+| **Under** | RT02: `conf t`, `interface Gi0/0/0.923`, `shutdown` | RT02: `show ip route 10.255.255.3` viser `O` via 10.255.12.1. Traceroute: RT02 → **RT01** → RT03. Ping fra sensor-PC virker stadig, og IPsec-tællerne stiger. Gentag de to negative tests (stadig afvist). `show bfd neighbors` viser, at BFD-sessionen er faldet. |
 | **Efter** | RT02: `no shutdown` på Gi0/0/0.923 | BGP kommer tilbage (`show ip bgp summary`), ruten er `B` via RT03 igen, traceroute går direkte. |
 
 Husk: kun `shutdown` på subinterfacet Gi0/0/0.923 på RT02, **ikke** en switchport eller SW01.
@@ -224,7 +256,7 @@ Husk: kun `shutdown` på subinterfacet Gi0/0/0.923 på RT02, **ikke** en switchp
 
 ### V07: Optimering
 
-- Vis `show ip route 10.30.130.0` på RT02 før, under og efter fejlen (se V02).
+- Vis `show ip route 10.255.255.3` på RT02 før, under og efter fejlen (se V02).
 - Vis `show bfd neighbors`, `show ip ospf interface` (hello 1 / dead 3, point-to-point) og `show ip bgp neighbors 10.255.23.1 | include BFD` (på RT02: 10.255.23.2).
 - Forklar virkning (hurtig omskiftning), hvorfor der ikke opstår loops (envejs-redistribution, filtre, metrikker) og sikker tilbageførsel (`no shutdown`).
 
@@ -246,21 +278,39 @@ Husk: kun `shutdown` på subinterfacet Gi0/0/0.923 på RT02, **ikke** en switchp
 | Hvorfor envejs-redistribution? | HQ-net i BGP ville give suboptimale ruter (AD 20) og risiko for route feedback. Filial og DC skal kun være synlige i OSPF |
 | Hvad er testpræfikset til? | Det viser, at filtreringen virker: præfikset er i BGP, men bliver ikke redistribueret til OSPF |
 | Hvad bruges tags til? | De mærker, om en rute er lokal (10) eller kom fra BGP (65), så herkomst kan ses og evt. filtreres senere |
-| Hvorfor BFD? | Uden BFD venter RT03 op til 9 sekunder (BGP hold-time), fordi SW1-porten er oppe, når kun RT02's subinterface lukkes |
+| Hvorfor BFD? | Uden BFD venter RT03 op til 9 sekunder (BGP hold-time), fordi SW01-porten er oppe, når kun RT02's subinterface lukkes |
 | Hvorfor ACL flere steder? | Kontrollen skal også holde på reservevejen via RT01, så HQ og DC er beskyttet uanset hvilken vej trafikken tager |
-| Hvorfor ikke ACL på RT02 alene? | Router-sendte tests passerer ikke egen inbound-ACL, og forsvar i dybden dækker begge veje |
-| Svagheden ved PBR? | Den ser kun lokal link-status, ikke fejl hos naboen. IP SLA/track (V08) ville løse det |
+| Hvorfor ikke ACL på RT02 alene? | Tests fra routeren passerer ikke egen inbound-ACL, og flere lag dækker begge veje |
+| Svagheden ved PBR? | Den ser kun lokal tilstand, ikke fejl hos naboen. IP SLA/track (V08) ville løse det |
+| Hvorfor en tunnel (VTI) og ikke crypto map? | Tunnelen er bygget mellem loopbacks og er uafhængig af det fysiske link, så den overlever fejltesten. En crypto map skulle ligge på hvert WAN-link, og trafik via RT01 kunne gå ukrypteret |
+| Hvorfor eget tunnelnet 10.255.100.0/29? | Så tunnelen ikke deler adresser med WAN eller tjenestenet. /29 giver plads til flere endepunkter senere |
+| Hvad sker der, hvis tunnelen falder? | PBR har `set interface Null0`, så telemetrien droppes i stedet for at gå i klartekst |
+| Hvordan viser vi, at trafikken er krypteret? | Encaps/decaps-tællerne i `show crypto ipsec sa` stiger, når vi sender trafik |
 
 ## 5. Kendte begrænsninger
 
-- PBR reagerer kun på lokal linkfejl (se V03). V08 (IP SLA/track) er ikke implementeret.
+- PBR reagerer ikke på fejl hos naboen, når linket er oppe lokalt. V08 (IP SLA/track) er ikke implementeret.
 - Tags er kun mærkater. Route feedback forhindres af envejs-redistribution og prefix-lister, ikke af tag-matching.
 - Konfigurationerne er skrevet til at blive pastet ind. `crypto key generate rsa` kan spørge om overskrivning, hvis der findes en nøgle i forvejen.
+- IPsec kræver, at routerens sikkerhedslicens er aktiv. Tjek med `show version` eller `show license summary`, hvis tunnelen ikke kommer op.
+- Pre-shared key er et laboratorie-valg og står i klartekst i konfigurationen.
 
-## 6. V06: IPsec (kommer)
+## 6. V06: IPsec
 
-Planen er en IPsec-krypteret site-to-site VPN mellem filial (RT02) og DC (RT03) til telemetritrafik:
+IPsec-krypteret site-to-site VPN mellem filial (RT02) og DC (RT03) til telemetritrafik.
 
-- Endepunkter: Loopback0 på RT02 (10.255.255.2) og RT03 (10.255.255.3). De er allerede i både OSPF og BGP, så de kan nås via transportnettet, også under WAN-fejlen, og ruten til dem afhænger ikke af tunnelen.
-- Interessant trafik: sensornet (10.20.120.0/24) til samlernet (10.30.130.0/24).
-- Test: skab trafik, og vis `show crypto session detail`, `show crypto ipsec sa` samt encrypt/decrypt-tællere før og efter. Gentag under `shutdown`/`no shutdown`.
+| Parameter | Valg | Hvorfor |
+| --- | --- | --- |
+| Type | VTI (`tunnel mode ipsec ipv4`) | Én tunnel, uafhængig af fysisk link. GRE alene er ikke nok (ingen kryptering) |
+| Endepunkter | Loopback0: RT02 10.255.255.2, RT03 10.255.255.3 | Nås via transportnettet (BGP normalt, OSPF via RT01 ved fejl), og ruten afhænger ikke af tunnelen |
+| Tunnelnet | 10.255.100.0/29 (RT02 .1, RT03 .2) | Eget net til tunnelen |
+| IKE | IKEv2: AES-256, SHA-256, DH 14, pre-shared key | Nøgleforhandling |
+| IPsec | ESP tunnel mode: AES-256, SHA-256 | Kryptering og integritet |
+| Trafik ind i tunnelen | PBR (`RM-PBR-SENSOR` på RT02, `RM-PBR-DC` på RT03) | Kun telemetri krypteres, og routingen er uændret |
+| MTU | `ip mtu 1400`, `ip tcp adjust-mss 1360` | Undgår fragmentering af krypteret trafik |
+
+Sådan opfylder vi kravene:
+
+- **Endepunkterne kan nås under WAN-fejlen:** loopbackerne ligger i både BGP og OSPF, så ruten skifter automatisk til RT01 (V02).
+- **Ruten afhænger ikke af tunnelen:** der kører ingen routingprotokol over Tunnel0, og tunnelnettet er ikke annonceret.
+- **Kontrollen på sensortrafikken holder:** ACL'erne rammer ikke ESP-pakkerne (kilde og destination er loopbackerne), og trafik der kommer ud af tunnelen på RT03 bliver kontrolleret af `ACL-SENSOR-GUARD` på Tunnel0.

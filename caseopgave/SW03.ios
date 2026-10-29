@@ -1,6 +1,6 @@
 enable
 configure terminal
-hostname SW03
+hostname SW02
 no ip domain-lookup
 no ip routing
 ip domain-name vindkraft.local
@@ -10,22 +10,22 @@ spanning-tree mode rapid-pvst
 line con 0
  logging synchronous
  exit
-vlan 30
- name DC-MGMT
+vlan 20
+ name FILIAL-MGMT
  exit
-vlan 130
- name DC-SAMLER
+vlan 120
+ name FILIAL-SENSOR
  exit
 interface GigabitEthernet1/0/1
- description RT03 Gi0/0/1 - DC-trunk 30/130
+ description RT02 Gi0/0/1 - filial-trunk 20/120
  switchport mode trunk
  switchport nonegotiate
- switchport trunk allowed vlan 30,130
+ switchport trunk allowed vlan 20,120
  exit
 interface GigabitEthernet1/0/2
- description DC-samler 10.30.130.10 gw 10.30.130.1
+ description Sensor-test-PC 10.20.120.10 gw 10.20.120.1
  switchport mode access
- switchport access vlan 130
+ switchport access vlan 120
  spanning-tree portfast
  exit
 interface range GigabitEthernet1/0/3-24
@@ -40,10 +40,10 @@ interface Vlan1
  no ip address
  shutdown
  exit
-interface Vlan30
- description Management SW03
- ip address 10.30.30.2 255.255.255.0
+interface Vlan20
+ description Management SW02
+ ip address 10.20.20.2 255.255.255.0
  no shutdown
  exit
-ip default-gateway 10.30.30.1
+ip default-gateway 10.20.20.1
 end

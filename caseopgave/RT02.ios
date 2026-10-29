@@ -90,42 +90,13 @@ interface GigabitEthernet0/0/1.120
  ip access-group ACL-SENSOR-IN in
  ip policy route-map RM-PBR-SENSOR
  exit
-<<<<<<< HEAD
-! sensorer må nå DC, men ikke andre interne net
-ip access-list extended SENSOR-IN
- 5 permit ip 10.20.120.0 0.0.0.255 host 10.20.120.1
- 10 permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
- 20 deny ip 10.20.120.0 0.0.0.255 10.0.0.0 0.255.255.255
- 30 permit ip 10.20.120.0 0.0.0.255 any
- exit
-interface GigabitEthernet0/0/1.120
- ip access-group SENSOR-IN in
- exit
-ip access-list extended SENSOR-PBR-MATCH
- permit ip host 10.20.120.10 10.30.130.0 0.0.0.255
- exit
-route-map SENSOR-PBR permit 10
- match ip address SENSOR-PBR-MATCH
- set ip next-hop 10.255.12.1
- exit
-interface GigabitEthernet0/0/1.120
- ip policy route-map SENSOR-PBR
- exit
-router ospf 10
- router-id 2.2.2.2
-=======
 router ospf 1
  router-id 10.255.255.2
  log-adjacency-changes
->>>>>>> 2f6c91b (better configs)
  passive-interface default
  no passive-interface GigabitEthernet0/0/0.912
  network 10.255.12.0 0.0.0.3 area 0
  network 10.20.20.0 0.0.0.255 area 0
-<<<<<<< HEAD
- network 10.20.120.0 0.0.0.255 area 0
- exit
-=======
  network 10.255.255.2 0.0.0.0 area 0
  redistribute connected subnets route-map RM-CONN-TO-OSPF
  redistribute bgp 65002 subnets route-map RM-BGP-TO-OSPF
@@ -146,4 +117,3 @@ router bgp 65002
   exit-address-family
  exit
 end
->>>>>>> 2f6c91b (better configs)

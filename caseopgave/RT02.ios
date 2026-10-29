@@ -42,17 +42,58 @@ ip access-list extended ACL-SENSOR-IN
  deny ip 10.20.120.0 0.0.0.255 10.255.0.0 0.0.255.255 log
  deny ip any any log
  exit
+crypto ikev2 proposal IKEV2-PROP
+ encryption aes-cbc-256
+ integrity sha256
+ group 14
+ exit
+crypto ikev2 policy IKEV2-POL
+ proposal IKEV2-PROP
+ exit
+crypto ikev2 keyring KR-TELEMETRI
+ peer RT03
+  address 10.255.255.3
+  pre-shared-key IPsecKey1!
+  exit
+ exit
+crypto ikev2 profile IKEV2-PROF
+ match identity remote address 10.255.255.3 255.255.255.255
+ identity local address 10.255.255.2
+ authentication remote pre-share
+ authentication local pre-share
+ keyring local KR-TELEMETRI
+ exit
+crypto ipsec transform-set TS-AES256 esp-aes 256 esp-sha256-hmac
+ mode tunnel
+ exit
+crypto ipsec profile IPSEC-PROF
+ set transform-set TS-AES256
+ set ikev2-profile IKEV2-PROF
+ exit
 ip access-list extended ACL-PBR-SENSOR
  permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
  exit
+! PBR: telemetri ind i tunnelen. Null0 = ingen klartekst-fallback
 route-map RM-PBR-SENSOR permit 10
  match ip address ACL-PBR-SENSOR
- set ip next-hop 10.255.23.2 10.255.12.1
+ set ip next-hop 10.255.100.2
+ set interface Null0
  exit
 ip local policy route-map RM-PBR-SENSOR
 interface Loopback0
- description Router-ID / transport (IPsec-endepunkt senere)
+ description Router-ID / transport / IPsec-endepunkt
  ip address 10.255.255.2 255.255.255.255
+ exit
+interface Tunnel0
+ description IPsec VTI RT02-RT03 (telemetri)
+ ip address 10.255.100.1 255.255.255.248
+ ip mtu 1400
+ ip tcp adjust-mss 1360
+ tunnel source Loopback0
+ tunnel destination 10.255.255.3
+ tunnel mode ipsec ipv4
+ tunnel protection ipsec profile IPSEC-PROF
+ no shutdown
  exit
 interface GigabitEthernet0/0/0
  description WAN-trunk til SW01 Gi1/0/2 (VLAN 912/923)
@@ -108,6 +149,7 @@ router bgp 65002
  neighbor 10.255.23.2 remote-as 65003
  neighbor 10.255.23.2 description eBGP-RT03-DC
  neighbor 10.255.23.2 timers 3 9
+ neighbor 10.255.23.2 fall-over bfd
  address-family ipv4
   network 10.20.120.0 mask 255.255.255.0
   network 10.255.255.2 mask 255.255.255.255

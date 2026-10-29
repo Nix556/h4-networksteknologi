@@ -41,13 +41,63 @@ ip access-list extended ACL-SENSOR-GUARD
  deny ip 10.20.120.0 0.0.0.255 10.255.0.0 0.0.255.255 log
  permit ip any any
  exit
+crypto ikev2 proposal IKEV2-PROP
+ encryption aes-cbc-256
+ integrity sha256
+ group 14
+ exit
+crypto ikev2 policy IKEV2-POL
+ proposal IKEV2-PROP
+ exit
+crypto ikev2 keyring KR-TELEMETRI
+ peer RT02
+  address 10.255.255.2
+  pre-shared-key IPsecKey1!
+  exit
+ exit
+crypto ikev2 profile IKEV2-PROF
+ match identity remote address 10.255.255.2 255.255.255.255
+ identity local address 10.255.255.3
+ authentication remote pre-share
+ authentication local pre-share
+ keyring local KR-TELEMETRI
+ exit
+crypto ipsec transform-set TS-AES256 esp-aes 256 esp-sha256-hmac
+ mode tunnel
+ exit
+crypto ipsec profile IPSEC-PROF
+ set transform-set TS-AES256
+ set ikev2-profile IKEV2-PROF
+ exit
+ip access-list extended ACL-PBR-DC
+ permit ip 10.30.130.0 0.0.0.255 10.20.120.0 0.0.0.255
+ exit
+! PBR: svartrafik ind i tunnelen. Null0 = ingen klartekst-fallback
+route-map RM-PBR-DC permit 10
+ match ip address ACL-PBR-DC
+ set ip next-hop 10.255.100.1
+ set interface Null0
+ exit
+ip local policy route-map RM-PBR-DC
 interface Loopback0
- description Router-ID / transport (IPsec-endepunkt senere)
+ description Router-ID / transport / IPsec-endepunkt
  ip address 10.255.255.3 255.255.255.255
  exit
 interface Loopback250
- description Uøenskede testprefix - skal ikke redistribueres til OSPF
+ description Uoenskede testprefix - skal ikke redistribueres til OSPF
  ip address 10.30.250.1 255.255.255.0
+ exit
+interface Tunnel0
+ description IPsec VTI RT03-RT02 (telemetri)
+ ip address 10.255.100.2 255.255.255.248
+ ip mtu 1400
+ ip tcp adjust-mss 1360
+ tunnel source Loopback0
+ tunnel destination 10.255.255.2
+ tunnel mode ipsec ipv4
+ tunnel protection ipsec profile IPSEC-PROF
+ ip access-group ACL-SENSOR-GUARD in
+ no shutdown
  exit
 interface GigabitEthernet0/0/0
  description WAN-trunk til SW01 Gi1/0/3 (VLAN 913/923)
@@ -84,6 +134,7 @@ interface GigabitEthernet0/0/1.130
  description DC dataopsamling
  encapsulation dot1Q 130
  ip address 10.30.130.1 255.255.255.0
+ ip policy route-map RM-PBR-DC
  exit
 router ospf 1
  router-id 10.255.255.3
@@ -103,6 +154,7 @@ router bgp 65003
  neighbor 10.255.23.1 remote-as 65002
  neighbor 10.255.23.1 description eBGP-RT02-Filial
  neighbor 10.255.23.1 timers 3 9
+ neighbor 10.255.23.1 fall-over bfd
  address-family ipv4
   network 10.30.130.0 mask 255.255.255.0
   network 10.255.255.3 mask 255.255.255.255

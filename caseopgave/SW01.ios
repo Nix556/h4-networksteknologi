@@ -1,12 +1,20 @@
 enable
 configure terminal
 hostname SW01
-no ip domain lookup
+no ip domain-lookup
+no ip routing
+ip domain-name vindkraft.local
+service password-encryption
+enable secret Password1!
+spanning-tree mode rapid-pvst
+line con 0
+ logging synchronous
+ exit
 vlan 10
- name HQ-MANAGEMENT
+ name HQ-MGMT
  exit
 vlan 110
- name HQ-DRIFTSLEDELSE
+ name HQ-ADMIN
  exit
 vlan 912
  name WAN-RT01-RT02
@@ -18,30 +26,36 @@ vlan 923
  name WAN-RT02-RT03
  exit
 interface GigabitEthernet1/0/1
- description WAN-trunk til RT01
+ description RT01 Gi0/0/0 - WAN-trunk 912/913
  switchport mode trunk
+ switchport nonegotiate
  switchport trunk allowed vlan 912,913
- no shutdown
  exit
 interface GigabitEthernet1/0/2
- description WAN-trunk til RT02
+ description RT02 Gi0/0/0 - WAN-trunk 912/923
  switchport mode trunk
+ switchport nonegotiate
  switchport trunk allowed vlan 912,923
- no shutdown
  exit
 interface GigabitEthernet1/0/3
- description WAN-trunk til RT03
+ description RT03 Gi0/0/0 - WAN-trunk 913/923
  switchport mode trunk
+ switchport nonegotiate
  switchport trunk allowed vlan 913,923
- no shutdown
  exit
 interface GigabitEthernet1/0/4
- description HQ trunk til RT01
+ description RT01 Gi0/0/1 - HQ-trunk 10/110
  switchport mode trunk
+ switchport nonegotiate
  switchport trunk allowed vlan 10,110
- no shutdown
  exit
-interface range GigabitEthernet1/0/5-24
+interface GigabitEthernet1/0/5
+ description HQ-admin-PC 10.10.110.10 gw 10.10.110.1
+ switchport mode access
+ switchport access vlan 110
+ spanning-tree portfast
+ exit
+interface range GigabitEthernet1/0/6-24
  description UBRUGT
  shutdown
  exit
@@ -49,9 +63,14 @@ interface range GigabitEthernet1/1/1-4
  description UBRUGT
  shutdown
  exit
+interface Vlan1
+ no ip address
+ shutdown
+ exit
 interface Vlan10
- description SW01 management
+ description Management SW01
  ip address 10.10.10.2 255.255.255.0
  no shutdown
  exit
 ip default-gateway 10.10.10.1
+end

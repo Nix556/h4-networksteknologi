@@ -1,25 +1,32 @@
 enable
 configure terminal
 hostname SW02
-no ip domain lookup
+no ip domain-lookup
+no ip routing
+ip domain-name vindkraft.local
+service password-encryption
+enable secret Password1!
+spanning-tree mode rapid-pvst
+line con 0
+ logging synchronous
+ exit
 vlan 20
- name FILIAL-MANAGEMENT
+ name FILIAL-MGMT
  exit
 vlan 120
- name SENSORER
+ name FILIAL-SENSOR
  exit
 interface GigabitEthernet1/0/1
- description Trunk til RT02 - filial
+ description RT02 Gi0/0/1 - filial-trunk 20/120
  switchport mode trunk
+ switchport nonegotiate
  switchport trunk allowed vlan 20,120
- no shutdown
  exit
 interface GigabitEthernet1/0/2
- description Sensor-klient
+ description Sensor-test-PC 10.20.120.10 gw 10.20.120.1
  switchport mode access
  switchport access vlan 120
  spanning-tree portfast
- no shutdown
  exit
 interface range GigabitEthernet1/0/3-24
  description UBRUGT
@@ -29,9 +36,14 @@ interface range GigabitEthernet1/1/1-4
  description UBRUGT
  shutdown
  exit
+interface Vlan1
+ no ip address
+ shutdown
+ exit
 interface Vlan20
- description SW02 management
+ description Management SW02
  ip address 10.20.20.2 255.255.255.0
  no shutdown
  exit
 ip default-gateway 10.20.20.1
+end

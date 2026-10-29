@@ -2,25 +2,76 @@ enable
 configure terminal
 hostname RT03
 no ip domain lookup
+ip domain name vindkraft.local
+service password-encryption
+enable secret Password1!
+line con 0
+ logging synchronous
+ exit
+ip prefix-list PL-SENSOR seq 5 permit 10.20.120.0/24
+ip prefix-list PL-DC-COLLECTOR seq 5 permit 10.30.130.0/24
+ip prefix-list PL-UNWANTED-TEST seq 5 permit 10.30.250.0/24
+ip prefix-list PL-BGP-OUT seq 5 permit 10.30.130.0/24
+ip prefix-list PL-BGP-OUT seq 10 permit 10.255.255.3/32
+! seq 15 er BEVIDST (V01-demo: testprefix i BGP men ikke i OSPF)
+ip prefix-list PL-BGP-OUT seq 15 permit 10.30.250.0/24
+ip prefix-list PL-BGP-IN seq 5 permit 10.20.120.0/24
+ip prefix-list PL-BGP-IN seq 10 permit 10.255.255.2/32
+route-map RM-CONN-TO-OSPF permit 10
+ match ip address prefix-list PL-DC-COLLECTOR
+ set metric 10
+ set metric-type type-2
+ set tag 10
+ exit
+route-map RM-BGP-TO-OSPF permit 10
+ match ip address prefix-list PL-SENSOR
+ set metric 50
+ set metric-type type-2
+ set tag 65
+ exit
+ip access-list extended ACL-SENSOR-GUARD
+ remark V05: kun sensor til samlernet tilladt, BGP/OSPF altid tilladt
+ permit tcp host 10.255.23.1 host 10.255.23.2 eq bgp
+ permit tcp host 10.255.23.1 eq bgp host 10.255.23.2
+ permit ospf any any
+ permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
+ deny ip 10.20.120.0 0.0.0.255 10.10.0.0 0.0.255.255 log
+ deny ip 10.20.120.0 0.0.0.255 10.20.0.0 0.0.255.255 log
+ deny ip 10.20.120.0 0.0.0.255 10.30.0.0 0.0.255.255 log
+ deny ip 10.20.120.0 0.0.0.255 10.255.0.0 0.0.255.255 log
+ permit ip any any
+ exit
+interface Loopback0
+ description Router-ID / transport (IPsec-endepunkt senere)
+ ip address 10.255.255.3 255.255.255.255
+ exit
+interface Loopback250
+ description Uøenskede testprefix - skal ikke redistribueres til OSPF
+ ip address 10.30.250.1 255.255.255.0
+ exit
 interface GigabitEthernet0/0/0
- description WAN-trunk til SW1
+ description WAN-trunk til SW01 Gi1/0/3 (VLAN 913/923)
  no ip address
  no shutdown
  exit
 interface GigabitEthernet0/0/0.913
- description WAN til RT01
+ description WAN RT03-RT01 (OSPF)
  encapsulation dot1Q 913
  ip address 10.255.13.2 255.255.255.252
- no shutdown
+ ip access-group ACL-SENSOR-GUARD in
+ ip ospf network point-to-point
+ ip ospf hello-interval 1
+ ip ospf dead-interval 3
  exit
 interface GigabitEthernet0/0/0.923
- description Primær WAN til RT02
+ description WAN RT03-RT02 (eBGP)
  encapsulation dot1Q 923
  ip address 10.255.23.2 255.255.255.252
- no shutdown
+ ip access-group ACL-SENSOR-GUARD in
+ bfd interval 100 min_rx 100 multiplier 3
  exit
 interface GigabitEthernet0/0/1
- description Trunk til SW3 - datacenter
+ description DC-trunk til SW03 Gi1/0/1 (VLAN 30/130)
  no ip address
  no shutdown
  exit
@@ -28,25 +79,37 @@ interface GigabitEthernet0/0/1.30
  description DC management
  encapsulation dot1Q 30
  ip address 10.30.30.1 255.255.255.0
- no shutdown
  exit
 interface GigabitEthernet0/0/1.130
- description DC telemetri og dataopsamling
+ description DC dataopsamling
  encapsulation dot1Q 130
  ip address 10.30.130.1 255.255.255.0
- no shutdown
  exit
-router ospf 10
- router-id 3.3.3.3
+router ospf 1
+ router-id 10.255.255.3
+ log-adjacency-changes
  passive-interface default
  no passive-interface GigabitEthernet0/0/0.913
- no passive-interface GigabitEthernet0/0/0.923
  network 10.255.13.0 0.0.0.3 area 0
- network 10.255.23.0 0.0.0.3 area 0
- network 10.30.130.0 0.0.0.255 area 0
+ network 10.30.30.0 0.0.0.255 area 0
+ network 10.255.255.3 0.0.0.0 area 0
+ redistribute connected subnets route-map RM-CONN-TO-OSPF
+ redistribute bgp 65003 subnets route-map RM-BGP-TO-OSPF
  exit
 router bgp 65003
+ bgp router-id 10.255.255.3
  bgp log-neighbor-changes
- neighbor 10.255.13.1 remote-as 65001
- network 10.30.130.0 mask 255.255.255.0
+ no bgp default ipv4-unicast
+ neighbor 10.255.23.1 remote-as 65002
+ neighbor 10.255.23.1 description eBGP-RT02-Filial
+ neighbor 10.255.23.1 timers 3 9
+ address-family ipv4
+  network 10.30.130.0 mask 255.255.255.0
+  network 10.255.255.3 mask 255.255.255.255
+  network 10.30.250.0 mask 255.255.255.0
+  neighbor 10.255.23.1 activate
+  neighbor 10.255.23.1 prefix-list PL-BGP-OUT out
+  neighbor 10.255.23.1 prefix-list PL-BGP-IN in
+  exit-address-family
  exit
+end

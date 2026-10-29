@@ -2,23 +2,50 @@ enable
 configure terminal
 hostname RT01
 no ip domain lookup
+ip domain name vindkraft.local
+service password-encryption
+enable secret Password1!
+line con 0
+ logging synchronous
+ exit
+ip access-list extended ACL-SENSOR-GUARD
+ remark V05: kun sensor til samlernet tilladt, OSPF altid tilladt
+ permit ospf any any
+ permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
+ deny ip 10.20.120.0 0.0.0.255 10.10.0.0 0.0.255.255 log
+ deny ip 10.20.120.0 0.0.0.255 10.20.0.0 0.0.255.255 log
+ deny ip 10.20.120.0 0.0.0.255 10.30.0.0 0.0.255.255 log
+ deny ip 10.20.120.0 0.0.0.255 10.255.0.0 0.0.255.255 log
+ permit ip any any
+ exit
+interface Loopback0
+ description Router-ID / transport
+ ip address 10.255.255.1 255.255.255.255
+ exit
 interface GigabitEthernet0/0/0
- description WAN-trunk til SW1
+ description WAN-trunk til SW01 Gi1/0/1 (VLAN 912/913)
  no ip address
  no shutdown
  exit
 interface GigabitEthernet0/0/0.912
- description WAN til RT02
+ description WAN RT01-RT02 (OSPF)
  encapsulation dot1Q 912
  ip address 10.255.12.1 255.255.255.252
+ ip access-group ACL-SENSOR-GUARD in
+ ip ospf network point-to-point
+ ip ospf hello-interval 1
+ ip ospf dead-interval 3
  exit
 interface GigabitEthernet0/0/0.913
- description WAN til RT03
+ description WAN RT01-RT03 (OSPF)
  encapsulation dot1Q 913
  ip address 10.255.13.1 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf hello-interval 1
+ ip ospf dead-interval 3
  exit
 interface GigabitEthernet0/0/1
- description Trunk til SW1 - HQ
+ description HQ-trunk til SW01 Gi1/0/4 (VLAN 10/110)
  no ip address
  no shutdown
  exit
@@ -32,37 +59,16 @@ interface GigabitEthernet0/0/1.110
  encapsulation dot1Q 110
  ip address 10.10.110.1 255.255.255.0
  exit
-! tillad kun DC's telemetrinettet fra BGP til OSPF
-ip prefix-list BGP-TO-OSPF seq 5 permit 10.30.130.0/24
-! tillad kun filialens managementnet fra OSPF til BGP
-ip prefix-list OSPF-TO-BGP seq 5 permit 10.20.20.0/24
-! begræns hvilke ruter RT01 annoncerer til RT03
-ip prefix-list BGP-OUT-RT03 seq 5 permit 10.20.20.0/24
-route-map BGP-TO-OSPF permit 10
- match ip address prefix-list BGP-TO-OSPF
- set tag 65001
- exit
-route-map OSPF-TO-BGP deny 10
- match tag 65001
- exit
-route-map OSPF-TO-BGP permit 20
- match ip address prefix-list OSPF-TO-BGP
- exit
-router ospf 10
- router-id 1.1.1.1
+router ospf 1
+ router-id 10.255.255.1
+ log-adjacency-changes
  passive-interface default
  no passive-interface GigabitEthernet0/0/0.912
  no passive-interface GigabitEthernet0/0/0.913
  network 10.255.12.0 0.0.0.3 area 0
  network 10.255.13.0 0.0.0.3 area 0
+ network 10.10.10.0 0.0.0.255 area 0
  network 10.10.110.0 0.0.0.255 area 0
- ! send kun godkendte BGP ruter til OSPF
- redistribute bgp 65001 subnets metric 10 metric-type 1 route-map BGP-TO-OSPF
+ network 10.255.255.1 0.0.0.0 area 0
  exit
-router bgp 65001
- bgp log-neighbor-changes
- neighbor 10.255.13.2 remote-as 65003
- neighbor 10.255.13.2 prefix-list BGP-OUT-RT03 out
- ! send kun godkendte OSPF ruter ind i BGP
- redistribute ospf 10 match internal external 1 external 2 route-map OSPF-TO-BGP
- exit
+end

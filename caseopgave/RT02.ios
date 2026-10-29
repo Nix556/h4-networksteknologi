@@ -2,28 +2,79 @@ enable
 configure terminal
 hostname RT02
 no ip domain lookup
+ip domain name vindkraft.local
+service password-encryption
+enable secret Password1!
+line con 0
+ logging synchronous
+ exit
+ip prefix-list PL-SENSOR seq 5 permit 10.20.120.0/24
+ip prefix-list PL-DC-COLLECTOR seq 5 permit 10.30.130.0/24
+ip prefix-list PL-UNWANTED-TEST seq 5 permit 10.30.250.0/24
+ip prefix-list PL-BGP-OUT seq 5 permit 10.20.120.0/24
+ip prefix-list PL-BGP-OUT seq 10 permit 10.255.255.2/32
+ip prefix-list PL-BGP-IN seq 5 permit 10.30.130.0/24
+ip prefix-list PL-BGP-IN seq 10 permit 10.255.255.3/32
+! seq 15 er BEVIDST (V01-demo: testprefix i BGP men ikke i OSPF)
+ip prefix-list PL-BGP-IN seq 15 permit 10.30.250.0/24
+route-map RM-CONN-TO-OSPF permit 10
+ match ip address prefix-list PL-SENSOR
+ set metric 10
+ set metric-type type-2
+ set tag 10
+ exit
+route-map RM-BGP-TO-OSPF deny 5
+ match ip address prefix-list PL-UNWANTED-TEST
+ exit
+route-map RM-BGP-TO-OSPF permit 10
+ match ip address prefix-list PL-DC-COLLECTOR
+ set metric 50
+ set metric-type type-2
+ set tag 65
+ exit
+ip access-list extended ACL-SENSOR-IN
+ remark V05: sensor-VLAN 120 - kun samlernet, ingen kontrolnet
+ permit icmp 10.20.120.0 0.0.0.255 host 10.20.120.1
+ permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
+ deny ip 10.20.120.0 0.0.0.255 10.10.0.0 0.0.255.255 log
+ deny ip 10.20.120.0 0.0.0.255 10.20.0.0 0.0.255.255 log
+ deny ip 10.20.120.0 0.0.0.255 10.30.0.0 0.0.255.255 log
+ deny ip 10.20.120.0 0.0.0.255 10.255.0.0 0.0.255.255 log
+ deny ip any any log
+ exit
+ip access-list extended ACL-PBR-SENSOR
+ permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
+ exit
+route-map RM-PBR-SENSOR permit 10
+ match ip address ACL-PBR-SENSOR
+ set ip next-hop 10.255.23.2 10.255.12.1
+ exit
+ip local policy route-map RM-PBR-SENSOR
+interface Loopback0
+ description Router-ID / transport (IPsec-endepunkt senere)
+ ip address 10.255.255.2 255.255.255.255
+ exit
 interface GigabitEthernet0/0/0
- description WAN-trunk til SW1
+ description WAN-trunk til SW01 Gi1/0/2 (VLAN 912/923)
  no ip address
  no shutdown
  exit
-! WAN til RT01 (reservevej), højere OSPF-cost for at foretrække RT03
 interface GigabitEthernet0/0/0.912
- description WAN til RT01
+ description WAN RT02-RT01 (OSPF)
  encapsulation dot1Q 912
  ip address 10.255.12.2 255.255.255.252
- ip ospf cost 100
- no shutdown
+ ip ospf network point-to-point
+ ip ospf hello-interval 1
+ ip ospf dead-interval 3
  exit
-! WAN direkte til RT03 (normal vej)
 interface GigabitEthernet0/0/0.923
- description Primær WAN til RT03
+ description WAN RT02-RT03 (eBGP)
  encapsulation dot1Q 923
  ip address 10.255.23.1 255.255.255.252
- no shutdown
+ bfd interval 100 min_rx 100 multiplier 3
  exit
 interface GigabitEthernet0/0/1
- description Trunk til SW2 - filial
+ description Filial-trunk til SW02 Gi1/0/1 (VLAN 20/120)
  no ip address
  no shutdown
  exit
@@ -31,14 +82,15 @@ interface GigabitEthernet0/0/1.20
  description Filial management
  encapsulation dot1Q 20
  ip address 10.20.20.1 255.255.255.0
- no shutdown
  exit
 interface GigabitEthernet0/0/1.120
- description Sensor VLAN
+ description Sensor-VLAN 120
  encapsulation dot1Q 120
  ip address 10.20.120.1 255.255.255.0
- no shutdown
+ ip access-group ACL-SENSOR-IN in
+ ip policy route-map RM-PBR-SENSOR
  exit
+<<<<<<< HEAD
 ! sensorer må nå DC, men ikke andre interne net
 ip access-list extended SENSOR-IN
  5 permit ip 10.20.120.0 0.0.0.255 host 10.20.120.1
@@ -61,11 +113,37 @@ interface GigabitEthernet0/0/1.120
  exit
 router ospf 10
  router-id 2.2.2.2
+=======
+router ospf 1
+ router-id 10.255.255.2
+ log-adjacency-changes
+>>>>>>> 2f6c91b (better configs)
  passive-interface default
  no passive-interface GigabitEthernet0/0/0.912
- no passive-interface GigabitEthernet0/0/0.923
  network 10.255.12.0 0.0.0.3 area 0
- network 10.255.23.0 0.0.0.3 area 0
  network 10.20.20.0 0.0.0.255 area 0
+<<<<<<< HEAD
  network 10.20.120.0 0.0.0.255 area 0
  exit
+=======
+ network 10.255.255.2 0.0.0.0 area 0
+ redistribute connected subnets route-map RM-CONN-TO-OSPF
+ redistribute bgp 65002 subnets route-map RM-BGP-TO-OSPF
+ exit
+router bgp 65002
+ bgp router-id 10.255.255.2
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor 10.255.23.2 remote-as 65003
+ neighbor 10.255.23.2 description eBGP-RT03-DC
+ neighbor 10.255.23.2 timers 3 9
+ address-family ipv4
+  network 10.20.120.0 mask 255.255.255.0
+  network 10.255.255.2 mask 255.255.255.255
+  neighbor 10.255.23.2 activate
+  neighbor 10.255.23.2 prefix-list PL-BGP-OUT out
+  neighbor 10.255.23.2 prefix-list PL-BGP-IN in
+  exit-address-family
+ exit
+end
+>>>>>>> 2f6c91b (better configs)

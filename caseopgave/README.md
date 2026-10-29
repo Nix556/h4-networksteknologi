@@ -4,7 +4,7 @@ Vi er driftsteamet hos Vindkraft Drift A/S: hovedkontoret (HQ) styre driften, fi
 
 ## Netværks Topologi
 
-![image](topology.png)
+![image](topologyV2.png)
 
 ## 1. IP-Plan
 

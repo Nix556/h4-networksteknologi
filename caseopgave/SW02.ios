@@ -19,9 +19,6 @@ line vty 0 4
  logging synchronous
  exit
 spanning-tree mode rapid-pvst
-line con 0
- logging synchronous
- exit
 vlan 20
  name FILIAL-MGMT
  exit

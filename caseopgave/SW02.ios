@@ -56,3 +56,4 @@ interface Vlan20
  exit
 ip default-gateway 10.20.20.1
 end
+write memory

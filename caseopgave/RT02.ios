@@ -168,3 +168,4 @@ router bgp 65002
   exit-address-family
  exit
 end
+write memory

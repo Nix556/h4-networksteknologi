@@ -174,3 +174,4 @@ router bgp 65003
   exit-address-family
  exit
 end
+write memory

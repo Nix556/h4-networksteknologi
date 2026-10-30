@@ -84,3 +84,4 @@ interface Vlan10
  exit
 ip default-gateway 10.10.10.1
 end
+write memory

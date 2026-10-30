@@ -3,6 +3,12 @@ configure terminal
 hostname SW02
 no ip domain-lookup
 no ip routing
+banner motd #
+VINDKRAFT A/S - RESTRICTED NETWORK ACCESS
+Authorized personnel only.
+All activities are monitored and logged.
+Unauthorized access is prohibited.
+#
 ip domain-name vindkraft.local
 service password-encryption
 enable secret Password1!

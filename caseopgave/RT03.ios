@@ -2,6 +2,12 @@ enable
 configure terminal
 hostname RT03
 no ip domain lookup
+banner motd #
+VINDKRAFT A/S - RESTRICTED NETWORK ACCESS
+Authorized personnel only.
+All activities are monitored and logged.
+Unauthorized access is prohibited.
+#
 ip domain name vindkraft.local
 service password-encryption
 enable secret Password1!

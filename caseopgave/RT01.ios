@@ -5,7 +5,16 @@ no ip domain lookup
 ip domain name vindkraft.local
 service password-encryption
 enable secret Password1!
+username admin privilege 15 secret Password1!
+crypto key generate rsa modulus 2048
+ip ssh version 2
 line con 0
+ logging synchronous
+ exit
+line vty 0 4
+ login local
+ transport input ssh
+ exec-timeout 10 0
  logging synchronous
  exit
 ip access-list extended ACL-SENSOR-GUARD

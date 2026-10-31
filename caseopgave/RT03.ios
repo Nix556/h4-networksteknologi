@@ -87,7 +87,7 @@ crypto ipsec profile IPSEC-PROF
 ip access-list extended ACL-PBR-DC
  permit ip 10.30.130.0 0.0.0.255 10.20.120.0 0.0.0.255
  exit
-! PBR: svartrafik ind i tunnelen. Null0 = ingen klartekst-fallback
+! PBR: svartrafik ind i tunnelen. Null0 = ingen plaintext-fallback
 route-map RM-PBR-DC permit 10
  match ip address ACL-PBR-DC
  set ip next-hop 10.255.100.1
@@ -99,7 +99,7 @@ interface Loopback0
  ip address 10.255.255.3 255.255.255.255
  exit
 interface Loopback250
- description Uoenskede testprefix - skal ikke redistribueres til OSPF
+ description Øenskede testprefix - skal ikke redistribueres til OSPF
  ip address 10.30.250.1 255.255.255.0
  exit
 interface Tunnel0

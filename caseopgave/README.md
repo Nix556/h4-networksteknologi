@@ -95,9 +95,9 @@ Redistributionen går kun fra BGP til OSPF (og connected til OSPF for eget servi
 
 ### Telemetri, PBR og IPsec
 
-Telemetri fra sensornettet til DC-samleren bliver krypteret i en IPsec-tunnel (VTI) mellem RT02 og RT03. Tunnelen er bygget mellem loopbackerne, så den ikke afhænger af ét bestemt link. Ruten til loopbacken går normalt over 923 og ved fejl via RT01, så tunnelen overlever fejltesten.
+Telemetri fra sensornettet til DC-samleren bliver krypteret i en IPsec-tunnel (VTI) mellem RT02 og RT03. Tunnelen er bygget mellem loopbackerne, så den ikke afhænger af et bestemt link. Ruten til loopbacken går normalt over 923 og ved fejl via RT01, så tunnelen overlever fejltesten.
 
-Vi bruger PBR til at sende trafik fra sensor til samler ind i tunnelen (og svartrafikken den anden vej). Al anden trafik bruger almindelig routing. PBR har `set interface Null0`, så telemetri bliver droppet i stedet for at gå i klartekst, hvis tunnelen går ned. Vi valgte PBR og ikke en statisk rute, fordi en statisk rute ville slå BGP og ødelægge redistributionen.
+Vi bruger PBR til at sende trafik fra sensor til samler ind i tunnelen (og svartrafikken den anden vej). Alt anden trafik bruger almindelig routing. PBR har `set interface Null0`, så telemetri bliver droppet i stedet for at gå i plaintext, hvis tunnelen går ned. Vi valgte PBR og ikke en statisk rute, fordi en statisk rute ville slå BGP og ødelægge redistributionen.
 
 IPsec-opsætning: IKEv2 med AES-256, SHA-256, DH 14 og pre-shared key, og ESP med AES-256 og SHA-256.
 
@@ -114,11 +114,11 @@ Sensorerne må kun nå DC-samlernettet. De må ikke nå HQ, management eller tra
 - BGP-timers 3/9 og `fall-over bfd`.
 - OSPF point-to-point med hello 1 og dead 3 på 912 og 913.
 
-Tilbageførsel er bare `no shutdown`. BGP kommer tilbage, og tunnelen har kørt hele tiden.
+Skriv bare `no shutdown`. BGP kommer tilbage, og tunnelen har kørt hele tiden.
 
 ## 3. Test og fremvisning
 
-Vi kommer ind på alle enheder med SSH fra HQ-admin-PC (management-adresserne ovenfor), så vi ikke skal skifte kabler. Husk, at ping skal være tilladt i PC'ernes firewall.
+Vi kommer ind på alle enheder med SSH fra HQ-admin-PC (management-adresserne ovenfor), eller via SSH på udstyret så vi ikke skal skifte kabler.
 
 Rækkefølge: forklar topologi og IP-plan, normal drift, V01, V05, V03, V06, fejltesten V02, V04, V07, og til sidst gemt konfiguration.
 
@@ -136,6 +136,7 @@ Præfiks før og efter: slå redistributionen fra på RT02 og RT03 (`no redistri
 ### V05: Adgangskontrol
 
 Fra sensor-test-PC:
+
 - `ping 10.30.130.10` skal virke
 - `ping 10.10.110.10` skal blive afvist
 - `ping 10.10.10.1` skal blive afvist
@@ -173,12 +174,11 @@ Vi lukker kun subinterfacet Gi0/0/0.923 på RT02, ikke en switchport.
 ### V07: Optimering
 
 - `show bfd neighbors`, `show ip ospf interface` og `show ip route` før, under og efter fejlen (se V02).
-- Vi forklarer, hvorfor der ikke kommer loops: redistributionen går kun én vej, der er filtre, og metrikkerne er forskellige (10 og 50).
+- Vi forklarer, hvorfor der ikke kommer loops: redistributionen går kun en vej, der er filtre, og metrikkerne er forskellige (10 og 50).
 
 ### Gemt konfiguration og tilbageførsel
 
-- Gem med `copy running-config startup-config` på alle enheder, og vis med `show startup-config`.
-- Eksempler på at tilbageføre en ændring: `no ip access-group ACL-SENSOR-IN in` på Gi0/0/1.120, eller `no ip policy route-map RM-PBR-SENSOR` på samme interface.
+- Eksempler på et rollback ændring: `no ip access-group ACL-SENSOR-IN in` på Gi0/0/1.120, eller `no ip policy route-map RM-PBR-SENSOR` på samme interface.
 - Ved backup bruger vi `copy flash:RT02-basis.cfg running-config`. Det lægger konfigurationen oven på den kørende. Til en fuld genskabelse bruger vi `configure replace flash:RT02-basis.cfg`.
 
 ## 4. Spørgsmål vi kan få
@@ -190,11 +190,10 @@ Vi lukker kun subinterfacet Gi0/0/0.923 på RT02, ikke en switchport.
 - Hvorfor BFD? Så RT03 også opdager fejlen med det samme og ikke venter på BGP-timeren.
 - Hvorfor ACL flere steder? Så kontrollen også virker på reservevejen via RT01.
 - Hvorfor tunnel (VTI) og ikke crypto map? Tunnelen kører mellem loopbacks og er uafhængig af linket. En crypto map skulle sidde på hvert WAN-link.
-- Hvad sker der, hvis tunnelen går ned? PBR sender til Null0, så der går ikke noget i klartekst.
+- Hvad sker der, hvis tunnelen går ned? PBR sender til Null0, så der går ikke noget i plaintext.
 - Hvordan ved vi, at trafikken er krypteret? Encaps og decaps stiger i `show crypto ipsec sa`, når vi sender trafik.
 
 ## 5. Begrænsninger
 
-- PBR kan kun se, om vores eget link er oppe, og ikke om naboen er død. IP SLA/track (V08) kunne løse det, men det har vi ikke lavet.
+- PBR kan kun se, om vores eget link er oppe, og ikke om naboen er død. IP SLA/track (V08) kunne løse det, men det har vi ikke nået at lave.
 - Tags er kun mærkater. Det er filtrene og den ene retning, der forhindrer feedback.
-- Pre-shared key står i klartekst i konfigurationen. Det er okay i et lab.

@@ -88,7 +88,7 @@ crypto ipsec profile IPSEC-PROF
 ip access-list extended ACL-PBR-SENSOR
  permit ip 10.20.120.0 0.0.0.255 10.30.130.0 0.0.0.255
  exit
-! PBR: telemetri ind i tunnelen. Null0 = ingen klartekst-fallback
+! PBR: telemetri ind i tunnelen. Null0 = ingen plaintext-fallback
 route-map RM-PBR-SENSOR permit 10
  match ip address ACL-PBR-SENSOR
  set ip next-hop 10.255.100.2

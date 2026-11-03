@@ -1,0 +1,30 @@
+enable
+conf t
+hostname D1
+banner motd # This is D1, Trouble Ticket 4.1.1.3 #
+enable secret cisco12345
+username admin privilege 15 algorithm-type scrypt secret cisco12345
+spanning-tree mode rapid-pvst
+spanning-tree vlan 1-2 root primary
+interface range g1/0/1 - 24
+ switchport mode access
+ shutdown
+ exit
+interface g1/0/11
+ switchport mode trunk
+ no shutdown
+ exit
+interface g1/0/1
+ switchport mode access
+ switchport access vlan 1
+ no shutdown
+ exit
+interface g1/0/23
+ switchport mode access
+ switchport access vlan 2
+ no shutdown
+ exit
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+ exit

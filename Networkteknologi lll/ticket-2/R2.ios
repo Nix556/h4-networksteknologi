@@ -20,7 +20,7 @@ router eigrp 412
  eigrp router-id 2.2.2.2
  network 10.0.12.0 0.0.0.255
  network 10.0.23.0 0.0.0.255
- ! distribute listen bestemte hvilken ruter R2 må annocere, ved at fjerne distribute-list på g0/0/1 gør vi at R2 gerne må annocere routerne til R3
+ ! distribute-listen bestemmer, hvilke ruter R2 må annoncere ved at fjerne distribute-listen på G0/0/1 gør vi det muligt for R2 at annoncere ruterne til R3 (distribute-listen ville blocker netværkene)
  no distribute-list prefix 88QRX-T13 out g0/0/1
  exit
 key chain security

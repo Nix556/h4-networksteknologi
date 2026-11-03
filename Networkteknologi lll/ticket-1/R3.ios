@@ -22,7 +22,7 @@ router eigrp 412
  network 192.168.3.0 0.0.0.255
  passive-interface default
  no passive-interface g0/0/1
- ! manglede no passive på g0/0/0, som betyd at den ikke blev nabo R2
+ ! R3 manglede no passive på g0/0/0, som betyd at den ikke blev nabo R2 og derfor ikke kunne blive established
  no passive-interface g0/0/0
  exit
 line con 0

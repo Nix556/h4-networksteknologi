@@ -28,7 +28,8 @@ interface loopback 1
  ip address 192.168.21.1 255.255.255.0
  no shutdown
  exit
-router eigrp 421
+! D2 have det forkerte AS nummer, det stod som 421 men i det rigtige AS er 412
+router eigrp 412
  eigrp router-id 132.132.132.132
  network 172.16.1.0 0.0.0.255
  network 172.16.13.0 0.0.0.255
@@ -41,12 +42,14 @@ key chain security
   exit
  exit
 interface g1/0/1
- ip authentication mode eigrp 421 md5
- ip authentication key-chain eigrp 421 security
+ ! vi rettede også det som der stod under til det rigtige AS nummer
+ ip authentication mode eigrp 412 md5
+ ip authentication key-chain eigrp 412 security
  exit
 interface g1/0/11
- ip authentication mode eigrp 421 md5
- ip authentication key-chain eigrp 421 security
+ ! vi rettede også det som der stod under til det rigtige AS nummer
+ ip authentication mode eigrp 412 md5
+ ip authentication key-chain eigrp 412 security
  exit
 line con 0
  exec-timeout 0 0

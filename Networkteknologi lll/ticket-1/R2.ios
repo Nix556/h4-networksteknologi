@@ -13,7 +13,8 @@ interface g0/0/1
  no shutdown
  exit
 router eigrp 412
- eigrp router-id 1.1.1.1
+! havde samme router-id som R1, hver router skal have et unikt id
+ eigrp router-id 2.2.2.2
  network 10.0.12.0 0.0.0.255
  network 10.0.23.0 0.0.0.255
  exit

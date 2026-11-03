@@ -1,0 +1,64 @@
+enable
+conf t
+hostname D1
+banner motd # This is D1, Trouble Ticket 20.1.1.1 #
+no ip domain lookup
+ip routing
+ipv6 unicast-routing
+line con 0
+ logging synchronous
+ exec-timeout 0 0
+exit
+interface g1/0/11
+ no switchport
+ ipv6 address 2001:db8:cab:f001::1/64
+ ipv6 address fe80::cab:f001:1 link-local
+ ip address 172.16.1.1 255.255.255.252
+ no shutdown
+exit
+interface lo1
+ ipv6 address 2001:db8:cab:f002::1/64
+ ipv6 address fe80::cab:f002:1 link-local
+ ip address 10.1.1.1 255.255.255.0
+exit
+interface lo10
+ ipv6 address 2001:db8:cab1::1/48
+ ip address 10.1.10.1 255.255.255.0
+ no shutdown
+exit
+interface lo20
+ ipv6 address 2001:db8:cab2::1/48
+ ip address 10.1.20.1 255.255.255.0
+ no shutdown
+exit
+interface lo30
+ ipv6 address 2001:db8:cab3::1/48
+ ip address 10.1.30.1 255.255.255.0
+ no shutdown
+exit
+interface lo48
+ ipv6 address 2001:db8:cafe::1/48
+ no shutdown
+exit
+interface range g1/0/6-10, g1/0/12-24
+ shutdown
+exit
+router bgp 65100
+ bgp router-id 1.0.0.1
+ neighbor 172.16.1.2 remote-as 65000
+ neighbor 2001:db8:cab:f001::2 remote-as 65000
+ address-family ipv4 unicast
+  network 10.1.1.0 mask 255.255.255.0
+  network 10.1.10.0 mask 255.255.255.0
+  network 10.1.20.0 mask 255.255.255.0
+  network 10.1.30.0 mask 255.255.255.0
+  neighbor 172.16.1.2 activate
+ exit
+ address-family ipv6 unicast
+  network 2001:db8:cab:f002::/64
+  network 2001:db8:cab1::/48
+  network 2001:db8:cab2::/48
+  network 2001:db8:cab3::/48
+  network 2001:db8:cafe::/48
+  neighbor 2001:db8:cab:f001::2 activate
+exit

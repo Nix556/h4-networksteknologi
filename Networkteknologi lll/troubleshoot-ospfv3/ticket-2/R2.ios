@@ -1,0 +1,27 @@
+enable
+conf t
+hostname R2
+banner motd # This is R2, Trouble Ticket 9.1.1.2 #
+no ip domain lookup
+ipv6 unicast-routing
+line con 0
+ logging synchronous
+ exec-timeout 0 0
+exit
+interface g0/0/0
+ ipv6 address 2001:db8:acad:a201::2/64
+ ipv6 address fe80::a201:2 link-local
+ ospfv3 1 ipv6 area 2
+ no shutdown
+interface lo0
+ ipv6 address 2001:db8:acad:a202::1/64
+ ipv6 address fe80::a202:1 link-local
+ ospfv3 1 ipv6 area 2
+ ipv6 ospf network point-to-point
+ no shutdown
+exit
+router ospfv3 1
+ address-family ipv6 unicast
+  router-id 2.2.2.2
+exit
+exit

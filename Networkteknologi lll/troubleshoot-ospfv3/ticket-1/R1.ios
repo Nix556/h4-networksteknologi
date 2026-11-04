@@ -13,11 +13,13 @@ interface g0/0/0
  ipv6 address fe80::a201:1 link-local
  ospfv3 1 ipv6 area 2
  no shutdown
+ exit
 interface g0/0/1
  ipv6 address 2001:db8:acad:a001::1/64
  ipv6 address fe80::a001:1 link-local
  ospfv3 1 ipv6 area 0
  no shutdown
+ exit
 interface lo0
  ipv6 address 2001:db8:feed:1::1/64
  ipv6 address fe80::1:1 link-local

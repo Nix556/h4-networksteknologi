@@ -25,9 +25,9 @@ interface Gi1/0/1
 
 ## INC-02 – OSPF mellem R2 og R3 kommer ikke op
 
-**Hvad var galt:**
+**Hvad var galt:** R2 havde WAN23-linket i OSPF area 1, mens R3 havde det i area 0. Area-ID skal være ens på begge sider af et link, så de to routere blev aldrig OSPF-naboer.
 
-**Hvad vi gjorde:**
+**Hvad vi gjorde:** Vi ændrede area-ID’et på R2 fra 1 til 0, så det matcher R3 og resten af designet.
 
 ```
 ```

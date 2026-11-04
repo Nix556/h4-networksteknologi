@@ -53,6 +53,8 @@ router ospf 18
  router-id 2.2.2.2
  passive-interface default
  no passive-interface Gi0/0/1
+ ! INC-02: vi fandt at WAN23-linket (10.255.23.0/29) stod i area 1 på R2, mens R3 har det i area 0 
+ ! Area-ID skal være ens på begge sider, ellers afvises hellopakkerne og naboskabet kommer aldrig op, vi rettede R2 til area 0
  network 10.255.23.0 0.0.0.7 area 1
  network 10.18.20.0 0.0.0.255 area 0
  exit

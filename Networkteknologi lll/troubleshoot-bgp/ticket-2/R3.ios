@@ -48,7 +48,8 @@ exit
 ipv6 prefix-list CAFE-POLICY permit 2001:db8:cafe::/48
 route-map AS65200-CAFE permit 10
  match ipv6 address prefix-list CAFE-POLICY
- set weight 400
+ ! local-preference bruges i stedet for weight (weight er kun lokalt), så præferencen kan deles med de andre routere i AS 65000
+ set local-preference 400
 exit
 route-map AS65200-CAFE permit 20
 exit
@@ -81,3 +82,5 @@ router bgp 65000
   neighbor 2001:db8:c0c0:99::2 activate
   neighbor 2001:db8:c0c0:99::2 next-hop-self
 exit
+! BGP processen nulstilles, så de nye local-preference-værdier bliver anvendt på alle routere i AS 65000
+clear bgp all 65000

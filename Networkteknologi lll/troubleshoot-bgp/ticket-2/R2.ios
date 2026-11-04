@@ -78,3 +78,5 @@ router bgp 65000
   neighbor 2001:db8:c0c0:99::1 activate
   neighbor 2001:db8:c0c0:99::3 activate
 exit
+! BGP processen nulstilles, så de nye local-preference-værdier bliver anvendt på alle routere i AS 65000
+clear bgp all 65000

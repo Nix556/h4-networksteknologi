@@ -44,6 +44,8 @@ vlan 923
 interface Gi1/0/1
  description TO R2
  switchport mode access
+ ! INC-01: vi fandt at Gi1/0/1 (mod R2) stod i VLAN 924, som slet ikke findes på SW2
+ ! porten var derfor inaktiv og R2 kunne ikke nå R3 på transit VLAN 923, vi rettede den til det rigtige VLAN
  switchport access vlan 924
  no shutdown
  exit

@@ -1,0 +1,253 @@
+enable
+configure terminal
+hostname C08-SW3
+no service pad
+no service config
+no service tcp-small-servers
+no service udp-small-servers
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service sequence-numbers
+service password-encryption
+banner motd # Netvaerksteknologi III - Case 08 - isoleret undervisningslab #
+clock timezone CET 1 0
+clock summer-time CEST recurring last Sun Mar 2:00 last Sun Oct 3:00
+ip domain name nt3.lab
+no ip source-route
+ip tcp path-mtu-discovery
+no ip http server
+no ip http secure-server
+logging buffered 16384 informational
+logging console warnings
+logging monitor informational
+logging trap notifications
+login on-failure log
+login on-success log
+no ip domain-lookup
+no ip routing
+vtp mode transparent
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+lldp run
+errdisable recovery cause bpduguard
+errdisable recovery cause link-flap
+errdisable recovery interval 300
+vlan 998
+ name UNUSED_PORTS
+ exit
+vlan 999
+ name NATIVE_BLACKHOLE
+ exit
+vlan 913
+ name TRANSIT_913
+ exit
+interface Gi1/0/1
+ description TO R3
+ switchport mode access
+ switchport access vlan 913
+ no shutdown
+ exit
+interface Gi1/0/2
+ description TO R1
+ switchport mode access
+ switchport access vlan 913
+ no shutdown
+ exit
+interface Vlan913
+ ip address 10.255.13.3 255.255.255.248
+ no shutdown
+ exit
+ip default-gateway 10.255.13.6
+interface GigabitEthernet1/0/3
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/4
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/5
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/6
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/7
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/8
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/9
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/10
+ description KUN VALGFRI TEST-PC - lokal VLAN 30
+ switchport
+ switchport mode access
+ switchport access vlan 30
+ switchport nonegotiate
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ switchport port-security
+ switchport port-security maximum 2
+ switchport port-security violation restrict
+ storm-control broadcast level 1.00
+ no shutdown
+ exit
+interface GigabitEthernet1/0/11
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/12
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/13
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/14
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/15
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/16
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/17
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/18
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/19
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/20
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/21
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/22
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/23
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+interface GigabitEthernet1/0/24
+ description UNUSED - SHUTDOWN
+ switchport
+ switchport mode access
+ switchport access vlan 998
+ shutdown
+ exit
+username netops privilege 15 secret Password1!
+enable secret Password1!
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 2
+ip access-list standard MGMT_VTY
+ remark Kun interne test- og transitnet maa administrere enheder
+ permit 10.18.0.0 0.0.255.255
+ permit 10.255.0.0 0.0.255.255
+ deny any log
+ exit
+logging buffered 32768 informational
+spanning-tree portfast default
+spanning-tree bpduguard default
+ntp server 10.18.10.1
+line con 0
+ logging synchronous
+ exec-timeout 0 0
+ exit
+line vty 0 4
+ exec-timeout 15 0
+ transport input ssh
+ login local
+ access-class MGMT_VTY in
+ exit
+line vty 5 15
+ exec-timeout 15 0
+ transport input ssh
+ login local
+ access-class MGMT_VTY in
+ exit
+end

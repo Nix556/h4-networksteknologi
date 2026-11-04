@@ -1,0 +1,83 @@
+enable
+configure terminal
+hostname C08-R1-DRIFTSCENTRAL
+no service pad
+no service config
+no service tcp-small-servers
+no service udp-small-servers
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service sequence-numbers
+service password-encryption
+banner motd # Netvaerksteknologi III - Case 08 - isoleret undervisningslab #
+clock timezone CET 1 0
+clock summer-time CEST recurring last Sun Mar 2:00 last Sun Oct 3:00
+ip domain name nt3.lab
+no ip source-route
+ip tcp path-mtu-discovery
+no ip http server
+no ip http secure-server
+logging buffered 16384 informational
+logging console warnings
+logging monitor informational
+logging trap notifications
+login on-failure log
+login on-success log
+no ip domain-lookup
+ip cef
+interface Gi0/0/0
+ description WAN12 via VLAN 912
+ ip address 10.255.12.1 255.255.255.248
+ no ip redirects
+ no ip proxy-arp
+ no shutdown
+ exit
+interface Gi0/0/1
+ description WAN13 via VLAN 913
+ ip address 10.255.13.1 255.255.255.248
+ no ip redirects
+ no ip proxy-arp
+ no shutdown
+ exit
+interface Loopback10
+ description SITE SERVICE Driftscentral
+ ip address 10.18.10.1 255.255.255.0
+ exit
+router bgp 65081
+ bgp log-neighbor-changes
+ bgp router-id 1.1.1.1
+ neighbor 10.255.13.2 remote-as 65083
+ neighbor 10.255.13.1 password METROOPS
+ network 10.18.10.0 mask 255.255.255.0
+ exit
+ip route 10.18.20.0 255.255.255.0 10.255.12.2 200
+username netops privilege 15 secret Password1!
+enable secret Password1!
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 2
+ip access-list standard MGMT_VTY
+ remark Kun interne test- og transitnet maa administrere enheder
+ permit 10.18.0.0 0.0.255.255
+ permit 10.255.0.0 0.0.255.255
+ deny any log
+ exit
+logging buffered 32768 informational
+ntp master 5
+line con 0
+ logging synchronous
+ exec-timeout 0 0
+ exit
+line vty 0 4
+ exec-timeout 15 0
+ transport input ssh
+ login local
+ access-class MGMT_VTY in
+ exit
+line vty 5 15
+ exec-timeout 15 0
+ transport input ssh
+ login local
+ access-class MGMT_VTY in
+ exit
+end

@@ -1,0 +1,105 @@
+enable
+configure terminal
+hostname C08-R3-DATA-DC
+no service pad
+no service config
+no service tcp-small-servers
+no service udp-small-servers
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service sequence-numbers
+service password-encryption
+banner motd # Netvaerksteknologi III - Case 08 - isoleret undervisningslab #
+clock timezone CET 1 0
+clock summer-time CEST recurring last Sun Mar 2:00 last Sun Oct 3:00
+ip domain name nt3.lab
+no ip source-route
+ip tcp path-mtu-discovery
+no ip http server
+no ip http secure-server
+logging buffered 16384 informational
+logging console warnings
+logging monitor informational
+logging trap notifications
+login on-failure log
+login on-success log
+no ip domain-lookup
+ip cef
+interface Gi0/0/0
+ description WAN23 via VLAN 923
+ ip address 10.255.23.2 255.255.255.248
+ no ip redirects
+ no ip proxy-arp
+ no shutdown
+ exit
+interface Gi0/0/1
+ description WAN13 via VLAN 913
+ ip address 10.255.13.2 255.255.255.248
+ no ip redirects
+ no ip proxy-arp
+ no shutdown
+ exit
+interface Loopback30
+ description SITE SERVICE Data-DC
+ ip address 10.18.30.1 255.255.255.0
+ ip ospf network point-to-point
+ exit
+router ospf 18
+ log-adjacency-changes detail
+ router-id 3.3.3.3
+ passive-interface default
+ no passive-interface Gi0/0/0
+ network 10.255.23.0 0.0.0.7 area 0
+ network 10.18.30.0 0.0.0.255 area 0
+ exit
+ip prefix-list IGP_TO_BGP seq 5 permit 10.18.21.0/24
+ip prefix-list IGP_TO_BGP seq 100 deny 0.0.0.0/0 le 32
+ip prefix-list BGP_TO_IGP seq 5 permit 10.18.10.0/24
+ip prefix-list BGP_TO_IGP seq 100 deny 0.0.0.0/0 le 32
+route-map IGP_TO_BGP permit 10
+ match ip address prefix-list IGP_TO_BGP
+ exit
+route-map BGP_TO_IGP permit 10
+ match ip address prefix-list BGP_TO_IGP
+ exit
+router bgp 65083
+ bgp log-neighbor-changes
+ bgp router-id 3.3.3.3
+ neighbor 10.255.13.1 remote-as 65081
+ network 10.18.30.0 mask 255.255.255.0
+ redistribute ospf 18 route-map IGP_TO_BGP
+ exit
+router ospf 18
+ log-adjacency-changes detail
+ redistribute bgp 65083 route-map BGP_TO_IGP
+ exit
+username netops privilege 15 secret Password1!
+enable secret Password1!
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 2
+ip access-list standard MGMT_VTY
+ remark Kun interne test- og transitnet maa administrere enheder
+ permit 10.18.0.0 0.0.255.255
+ permit 10.255.0.0 0.0.255.255
+ deny any log
+ exit
+logging buffered 32768 informational
+ntp server 10.18.10.1 prefer
+line con 0
+ logging synchronous
+ exec-timeout 0 0
+ exit
+line vty 0 4
+ exec-timeout 15 0
+ transport input ssh
+ login local
+ access-class MGMT_VTY in
+ exit
+line vty 5 15
+ exec-timeout 15 0
+ transport input ssh
+ login local
+ access-class MGMT_VTY in
+ exit
+end

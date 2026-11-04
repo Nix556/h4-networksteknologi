@@ -62,6 +62,8 @@ router bgp 65000
   neighbor 172.16.2.1 activate
   neighbor 192.168.99.1 activate
   neighbor 192.168.99.2 activate
+  ! next-hop-self manglede, fordi R1 og R2 ellers ikke kunne nå next-hop-adresse fra eBGP-forbindelsen (nu bruger de R3 som næste hop til de annoncerede netværk)
+  neighbor 192.168.99.1 next-hop-self
   neighbor 192.168.99.2 next-hop-self
  exit
  address-family ipv6 unicast
@@ -69,5 +71,7 @@ router bgp 65000
   neighbor 2001:db8:b0b:f001::1 activate
   neighbor 2001:db8:c0c0:99::1 activate
   neighbor 2001:db8:c0c0:99::2 activate
+  ! next-hop-self manglede, fordi R1 og R2 ellers ikke kunne nå IPv6 next-hop-adresse fra eBGP-forbindelsen (nu bruger de R3 som næste hop til de annoncerede IPv6-netværk)
+  neighbor 2001:db8:c0c0:99::1 next-hop-self
   neighbor 2001:db8:c0c0:99::2 next-hop-self
 exit

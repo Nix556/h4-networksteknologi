@@ -8,54 +8,61 @@ ipv6 unicast-routing
 line con 0
  logging synchronous
  exec-timeout 0 0
-exit
+ exit
 interface g1/0/11
  no switchport
  ipv6 address 2001:db8:acad:a003::2/64
  ipv6 address fe80::a003:2 link-local
  ospfv3 1 ipv6 area 0
  no shutdown
+ exit
 interface g1/0/1
  description Channel to D1
  no switchport
  channel-group 1 mode on
  no shutdown
+ exit
 interface g1/0/2
  description Channel to D1
  no switchport
  channel-group 1 mode on
  no shutdown
+ exit
 interface g1/0/3
  description Channel to D1
  no switchport
  channel-group 2 mode on
  no shutdown
+ exit
 interface g1/0/4
  description Channel to D1
  no switchport
  channel-group 2 mode on
  no shutdown
+ exit
 interface lo0
  ipv6 address 2001:db8:acad:a104::1/64
  ipv6 address fe80::a104:1 link-local
  ospfv3 1 ipv6 area 1
  ipv6 ospf network point-to-point
  no shutdown
+ exit
 interface port-channel 1
  ipv6 address 2001:db8:acad:a002::2/64
  ipv6 address fe80::a002:2 link-local
  ospfv3 1 ipv6 area 0
  no shutdown
+ exit
 interface port-channel 2
  ipv6 address 2001:db8:acad:a101::2/64
  ipv6 address fe80::a101:2 link-local
  ospfv3 1 ipv6 area 1
  no shutdown
+ exit
 interface range g1/0/5-10, g1/0/12-24
  shutdown
-exit
+ exit
 router ospfv3 1
  address-family ipv6 unicast
   router-id 5.5.5.5
-exit
-exit
+ exit

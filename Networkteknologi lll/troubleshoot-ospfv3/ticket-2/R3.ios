@@ -22,5 +22,6 @@ interface lo0
 exit
 router ospfv3 1
  address-family ipv6 unicast
-exit
-exit
+ ! R3 manglede router-id i konfigurationen
+ router-id 3.3.3.3
+ exit

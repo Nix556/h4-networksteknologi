@@ -13,6 +13,8 @@ interface g0/0/0
  ipv6 address fe80::a201:2 link-local
  ospfv3 1 ipv6 area 2
  ospfv3 hello-interval 5
+! dead-interval manglede, standardværdien er 4 gange hello-intervallet (hvilket svarer til 20 sekunder) derfor troede naboen, at R2 var død
+ ospfv3 dead-interval 15
  no shutdown
 interface lo0
  ipv6 address 2001:db8:acad:a202::1/64

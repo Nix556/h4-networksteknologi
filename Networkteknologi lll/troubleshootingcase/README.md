@@ -31,6 +31,9 @@ interface Gi1/0/1
 **Hvad vi gjorde:** Vi ændrede area-ID’et på R2 fra 1 til 0, så det matcher R3 og resten af designet.
 
 ```
+router ospf 18
+ no network 10.255.23.0 0.0.0.7 area 1
+ network 10.255.23.0 0.0.0.7 area 0
 ```
 
 **Før**

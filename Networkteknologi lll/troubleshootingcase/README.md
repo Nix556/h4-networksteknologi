@@ -38,7 +38,7 @@ router ospf 18
 
 **Før**
 
-![Før](screenshots/INC-02/foer.png)
+![Før](screenshots/INC-02/før.png)
 
 **Efter**
 

@@ -16,7 +16,7 @@ interface Gi1/0/1
 
 **Før**
 
-![Før](screenshots/INC-01/foer.png)
+![Før](screenshots/INC-01/før.png)
 
 **Efter**
 

@@ -235,7 +235,7 @@ ip access-list standard MGMT_VTY
  exit
 logging buffered 32768 informational
 spanning-tree portfast default
-spanning-tree bpduguard default
+spanning-tree portfast bpduguard default
 ntp server 10.18.10.1
 ip route 10.18.241.1 255.255.255.255 172.31.8.1
 interface Loopback241

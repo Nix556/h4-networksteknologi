@@ -232,7 +232,7 @@ ip access-list standard MGMT_VTY
  exit
 logging buffered 32768 informational
 spanning-tree portfast default
-spanning-tree bpduguard default
+spanning-tree portfast bpduguard default
 ntp server 10.18.10.1
 line con 0
  logging synchronous

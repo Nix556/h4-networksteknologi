@@ -177,7 +177,7 @@ interface GigabitEthernet1/0/18
  switchport access vlan 998
  shutdown
  exit
-interface GigabitEthernet1/0/19
+interface GigabitEthernet1/0/19 
  description UNUSED - SHUTDOWN
  switchport
  switchport mode access
@@ -233,7 +233,7 @@ ip access-list standard MGMT_VTY
  exit
 logging buffered 32768 informational
 spanning-tree portfast default
-spanning-tree bpduguard default
+spanning-tree portfast bpduguard default
 ntp server 10.18.10.1
 ip route 10.18.241.2 255.255.255.255 172.31.8.2
 interface Loopback241

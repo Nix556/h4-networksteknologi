@@ -10,6 +10,7 @@ Netværksteknologi III. Her er vores dokumentation af de 8 tickets, med skærmbi
 
 ```
 interface Gi1/0/1
+ no switchport access vlan 24
  switchport access vlan 923
 ```
 

@@ -48,20 +48,24 @@ router ospf 18
 
 ## INC-03 – BGP mellem R3 og R1 er ikke Established
 
-**Hvad var galt:**
+**Hvad var galt:** BGP passwordet på R1 var sat på den forkerte adresse (10.255.13.1, R1’s egen) i stedet for naboen R3 (10.255.13.2), og R3 havde ikke noget password. Sessionen kunne derfor ikke blive Established.
 
-**Hvad vi gjorde:**
+**Hvad vi gjorde:** Vi fjernede den forkerte linje på R1, satte METROOPS på den rigtige nabo, og satte samme password på R3.
 
 ```
+R1:
+router bgp 65081
+no neighbor 10.255.13.1 password METROOPS
+neighbor 10.255.13.2 password METROOPS
+
+R3:
+router bgp 65083
+neighbor 10.255.13.1 password METROOPS
 ```
 
-**Før**
+**Resultat**
 
-![Før](screenshots/INC-03/foer.png)
-
-**Efter**
-
-![Efter](screenshots/INC-03/efter.png)
+![Efter](screenshots/INC-03/resultat.png)
 
 ---
 

@@ -66,6 +66,9 @@ router bgp 65083
  bgp log-neighbor-changes
  bgp router-id 3.3.3.3
  neighbor 10.255.13.1 remote-as 65081
+ ! INC-03: vi fandt at R3 slet ikke havde noget BGP password, så det ikke kunne matche R1
+ ! vi satte samme password (METROOPS) på R3's nabo R1 (10.255.13.1), så begge sider bruger MD5
+ neighbor 10.255.13.1 password METROOPS
  network 10.18.30.0 mask 255.255.255.0
  redistribute ospf 18 route-map IGP_TO_BGP
  exit

@@ -47,7 +47,9 @@ router bgp 65081
  bgp log-neighbor-changes
  bgp router-id 1.1.1.1
  neighbor 10.255.13.2 remote-as 65083
- neighbor 10.255.13.1 password METROOPS
+ ! INC-03: vi fandt at BGP passwordet stod på 10.255.13.1, som er R1's egen adresse, og ikke på naboen R3 (10.255.13.2)
+ ! det vil sige at naboen havde intet password, vi fjernede den forkerte linje og satte passwordet på den rigtige nabo
+ neighbor 10.255.13.2 password METROOPS
  network 10.18.10.0 mask 255.255.255.0
  exit
 ip route 10.18.20.0 255.255.255.0 10.255.12.2 200

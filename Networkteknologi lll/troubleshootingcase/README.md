@@ -10,7 +10,7 @@ Netværksteknologi III. Her er vores dokumentation af de 8 tickets, med skærmbi
 
 ```
 interface Gi1/0/1
- no switchport access vlan 24
+ no switchport access vlan 924
  switchport access vlan 923
 ```
 
@@ -105,7 +105,7 @@ ip prefix-list IGP_TO_BGP seq 5 permit 10.18.20.0/24
 
 ## INC-06 – 10.18.99.1 kan ikke nås fra de andre sites
 
-**Hvad var galt:** Der et intet galt. 10.18.99.1 er Loopback99 på R2 og er en lokal diagnoseadresse, som bevidst ikke bliver annonceret. Den står ikke i OSPF konfigurationen på R2, og prefix-listerne på R3 ville alligevel stoppe den. At de andre sites ikke kan nå den, er meningen.
+**Hvad var galt:** Der er intet galt. 10.18.99.1 er Loopback99 på R2 og er en lokal diagnoseadresse, som bevidst ikke bliver annonceret. Den står ikke i OSPF konfigurationen på R2, og prefix-listerne på R3 ville alligevel stoppe den. At de andre sites ikke kan nå den, er meningen.
 
 **Hvad vi gjorde:** Ingenting. Vi dokumenterede med show ip route på R1, R2 og R3, at adressen kun findes lokalt på R2.
 
@@ -125,14 +125,14 @@ ip prefix-list IGP_TO_BGP seq 5 permit 10.18.20.0/24
 
 ```
 ip access-list extended OPS_MGMT
-no deny deny ip 10.18.20.0 0.0.0.255 10.18.10.0 0.0.0.255
+no deny ip 10.18.20.0 0.0.0.255 10.18.10.0 0.0.0.255
 ```
 
 **Før**
 
 ![Før](screenshots/INC-07/før.png)
 
-Ping virker fordi ACL'en ikke påvirker R2 egen trafik, hvis vi skulle demostrere det rigtig ville vi have behov for en klient. (Klient ville ikke kunne snakke til MGMT trafikken før vi fjernet deny fra access listen)
+Ping virker fordi ACL'en ikke påvirker R2's egen trafik, hvis vi skulle demonstrere det rigtig ville vi have behov for en klient. (Klient ville ikke kunne snakke til MGMT trafikken før vi fjernet deny fra access listen)
 
 **Efter**
 

@@ -119,16 +119,19 @@ ip prefix-list IGP_TO_BGP seq 5 permit 10.18.20.0/24
 
 ## INC-07 – Feltdepotets managementtrafik bliver afvist
 
-**Hvad var galt:**
+**Hvad var galt:** ACL’en OPS_MGMT på R2’s Gi0/0/1 (ud) havde en deny fra feltdepotets net (10.18.20.0/24) til driftscentralens net (10.18.10.0/24). Den blokerede den trafik, routingen er bygget til, selv om ruten fandtes i tabellen. MGMT_VTY på R1 tillader samtidig hele 10.18.0.0/16, så designet forventer, at feltdepotet kan nå driftscentralen.
 
 **Hvad vi gjorde:**
 
 ```
+ip access-list extended OPS_MGMT
+no deny deny ip 10.18.20.0 0.0.0.255 10.18.10.0 0.0.0.255
 ```
 
 **Før**
 
-![Før](screenshots/INC-07/foer.png)
+![Før](screenshots/INC-07/før.png)
+Ping virker fordi ACL'en ikke påvirker R2 egen trafik, hvis vi skulle demostrere det rigtig ville vi have behov for en klient. (Klient ville ikke kunne snakke til MGMT trafikken før vi fjernet deny fra access listen)
 
 **Efter**
 

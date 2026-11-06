@@ -61,7 +61,8 @@ router ospf 18
 ip route 10.18.10.0 255.255.255.0 10.255.12.1 200
 ip access-list extended OPS_MGMT
  remark Production traffic policy
- deny ip 10.18.20.0 0.0.0.255 10.18.10.0 0.0.0.255
+ ! INC-07: vi fandt at OPS_MGMT på Gi0/0/1 ud havde en deny fra 10.18.20.0/24 til 10.18.10.0/24
+ ! vi fjernede deny linjen og beholdt permit
  permit ip any any
  exit
 interface Gi0/0/1

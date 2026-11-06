@@ -65,7 +65,7 @@ neighbor 10.255.13.1 password METROOPS
 
 **Resultat**
 
-![Efter](screenshots/INC-03/resultat.png)
+![Resultat](screenshots/INC-03/resultat.png)
 
 ---
 
@@ -77,7 +77,7 @@ neighbor 10.255.13.1 password METROOPS
 
 **Resultat**
 
-![Efter](screenshots/INC-04/resultat.png)
+![Resultat](screenshots/INC-04/resultat.png)
 
 ---
 
@@ -105,20 +105,15 @@ ip prefix-list IGP_TO_BGP seq 5 permit 10.18.20.0/24
 
 ## INC-06 – 10.18.99.1 kan ikke nås fra de andre sites
 
-**Hvad var galt:**
+**Hvad var galt:** Der et intet galt. 10.18.99.1 er Loopback99 på R2 og er en lokal diagnoseadresse, som bevidst ikke bliver annonceret. Den står ikke i OSPF konfigurationen på R2, og prefix-listerne på R3 ville alligevel stoppe den. At de andre sites ikke kan nå den, er meningen.
 
-**Hvad vi gjorde:**
+**Hvad vi gjorde:** Ingenting. Vi dokumenterede med show ip route på R1, R2 og R3, at adressen kun findes lokalt på R2.
 
-```
-```
+**Resultat**
 
-**Før**
-
-![Før](screenshots/INC-06/foer.png)
-
-**Efter**
-
-![Efter](screenshots/INC-06/efter.png)
+![Resultat](screenshots/INC-06/resultat.png)
+![Resultat](screenshots/INC-06/resultat2.png)
+![Resultat](screenshots/INC-06/resultat3.png)
 
 ---
 

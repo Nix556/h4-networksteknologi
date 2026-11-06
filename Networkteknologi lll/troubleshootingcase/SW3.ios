@@ -57,7 +57,9 @@ interface Vlan913
  ip address 10.255.13.3 255.255.255.248
  no shutdown
  exit
-ip default-gateway 10.255.13.6
+! INC-08: vi fandt at default gateway på SW3 var 10.255.13.6, som ingen enhed bruger på VLAN 913. 
+! switchen kunne derfor ikke nå til net uden for 10.255.13.0/29, og fjernadministration fra andre sites fejlede
+ip default-gateway 10.255.13.1
 interface GigabitEthernet1/0/3
  description UNUSED - SHUTDOWN
  switchport

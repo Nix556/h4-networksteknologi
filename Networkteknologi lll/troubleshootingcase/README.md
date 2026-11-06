@@ -121,7 +121,7 @@ ip prefix-list IGP_TO_BGP seq 5 permit 10.18.20.0/24
 
 **Hvad var galt:** ACL’en OPS_MGMT på R2’s Gi0/0/1 (ud) havde en deny fra feltdepotets net (10.18.20.0/24) til driftscentralens net (10.18.10.0/24). Den blokerede den trafik, routingen er bygget til, selv om ruten fandtes i tabellen. MGMT_VTY på R1 tillader samtidig hele 10.18.0.0/16, så designet forventer, at feltdepotet kan nå driftscentralen.
 
-**Hvad vi gjorde:**
+**Hvad vi gjorde:**  Vi fjernede deny i OPS_MGMT og beholdt permit ip any any, så ACL’en stadig er på interfacet.
 
 ```
 ip access-list extended OPS_MGMT
@@ -142,17 +142,23 @@ Ping virker fordi ACL'en ikke påvirker R2 egen trafik, hvis vi skulle demostrer
 
 ## INC-08 – Switchen mellem datacenter og driftscentral kan ikke fjernadministreres
 
-**Hvad var galt:**
+**Hvad var galt:** SW3 havde sin default gateway sat til 10.255.13.6, som ingen enhed bruger på VLAN 913. Switchen kunne derfor kun svare til enheder på sit eget subnet. Pings til andre sites fejlede, selv om R1 og R3 kunne nå den direkte.
 
-**Hvad vi gjorde:**
+**Hvad vi gjorde:** Vi rettede default gateway til R1 (10.255.13.1), som SW1 og SW2 også peger på deres .1-router.
 
 ```
+no ip default-gateway 10.255.13.6
+ip default-gateway 10.255.13.1
 ```
 
 **Før**
 
-![Før](screenshots/INC-08/foer.png)
+![Før](screenshots/INC-08/før.png)
+![Før](screenshots/INC-08/før2.png)
+
+ping 10.255.13.3 source 10.18.30.1 fra R3 fejler, fordi SW3’s default gateway (10.255.13.6) ikke findes, så svaret ikke kommer tilbage. En almindelig ping fra R3 virker, fordi den er på samme subnet.
 
 **Efter**
 
 ![Efter](screenshots/INC-08/efter.png)
+![Efter](screenshots/INC-08/efter2.png)

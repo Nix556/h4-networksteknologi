@@ -71,7 +71,7 @@ neighbor 10.255.13.1 password METROOPS
 
 ## INC-04 – Driftscentralens præfiks kommer ikke fra BGP ind i OSPF
 
-**Hvad var galt:** Der var ingenting galt med redistributionen. R1’s præfiks 10.18.10.0/24 kom ikke ind i OSPF, fordi BGP mellem R1 og R3 var nede (INC-03), så R3 ikke havde ruten at redistribuere. Prefix-list og route-map på R3 er korrekte.
+**Hvad var galt:** Der var ingenting galt med redistributionen. R1’s præfiks 10.18.10.0/24 kom ikke ind i OSPF, fordi BGP mellem R1 og R3 var nede (INC-03), så R3 havde ikke ruten at redistribuere. Prefix-list og route-map på R3 er korrekte.
 
 **Hvad vi gjorde:** Vi tjekkede prefix-list, route-map og redistribute-linjen på R3 og så, at ruten kom ind hos R2 som O E2 med tag 65081, da BGP var oppe. Vi ændrede ikke konfigurationen, fordi der ikke var noget at rette.
 
@@ -88,15 +88,18 @@ neighbor 10.255.13.1 password METROOPS
 **Hvad vi gjorde:**
 
 ```
+no ip prefix-list IGP_TO_BGP seq 5 permit 10.18.21.0/24
+ip prefix-list IGP_TO_BGP seq 5 permit 10.18.20.0/24
 ```
 
 **Før**
 
-![Før](screenshots/INC-05/foer.png)
+![Før](screenshots/INC-05/før.png)
 
 **Efter**
 
 ![Efter](screenshots/INC-05/efter.png)
+![Efter](screenshots/INC-05/efter2.png)
 
 ---
 

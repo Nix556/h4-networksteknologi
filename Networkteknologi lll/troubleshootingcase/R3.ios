@@ -52,7 +52,9 @@ router ospf 18
  network 10.255.23.0 0.0.0.7 area 0
  network 10.18.30.0 0.0.0.255 area 0
  exit
-ip prefix-list IGP_TO_BGP seq 5 permit 10.18.21.0/24
+! INC-05: vi fandt at prefix-listen IGP_TO_BGP tillod 10.18.21.0/24, som ikke findes 
+! Feltdepotets præfiks er 10.18.20.0/24, så det blev stoppet af deny og kom aldrig i BGP
+ip prefix-list IGP_TO_BGP seq 5 permit 10.18.20.0/24
 ip prefix-list IGP_TO_BGP seq 100 deny 0.0.0.0/0 le 32
 ip prefix-list BGP_TO_IGP seq 5 permit 10.18.10.0/24
 ip prefix-list BGP_TO_IGP seq 100 deny 0.0.0.0/0 le 32
@@ -70,7 +72,7 @@ router bgp 65083
  ! vi satte samme password (METROOPS) på R3's nabo R1 (10.255.13.1), så begge sider bruger MD5
  neighbor 10.255.13.1 password METROOPS
  network 10.18.30.0 mask 255.255.255.0
- ! INC-04: vi undersøgte redistribute bgp til ospf på R3 og fandt ingen fejl. Prefix-list og route-map er korrekte, og R2 har 10.18.10.0/24 som O E2 
+ ! INC-04: vi undersøgte redistribute bgp til ospf på R3 og fandt ingen fejl. Prefix-list og route-map er korrekte, og R2 har 10.18.10.0/24 som O E2
  redistribute ospf 18 route-map IGP_TO_BGP
  exit
 router ospf 18

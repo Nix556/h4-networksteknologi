@@ -83,9 +83,9 @@ neighbor 10.255.13.1 password METROOPS
 
 ## INC-05 – Feltdepotets præfiks mangler i BGP ved driftscentralen
 
-**Hvad var galt:**
+**Hvad var galt:** Prefix-listen IGP_TO_BGP på R3 tillod 10.18.21.0/24 i stedet for feltdepotets 10.18.20.0/24. Feltdepotets præfiks blev derfor stoppet af deny og kom aldrig fra OSPF ind i BGP.
 
-**Hvad vi gjorde:**
+**Hvad vi gjorde:** Vi rettede seq 5 i prefix-listen til det rigtige præfiks.
 
 ```
 no ip prefix-list IGP_TO_BGP seq 5 permit 10.18.21.0/24

@@ -131,6 +131,7 @@ no deny deny ip 10.18.20.0 0.0.0.255 10.18.10.0 0.0.0.255
 **Før**
 
 ![Før](screenshots/INC-07/før.png)
+
 Ping virker fordi ACL'en ikke påvirker R2 egen trafik, hvis vi skulle demostrere det rigtig ville vi have behov for en klient. (Klient ville ikke kunne snakke til MGMT trafikken før vi fjernet deny fra access listen)
 
 **Efter**

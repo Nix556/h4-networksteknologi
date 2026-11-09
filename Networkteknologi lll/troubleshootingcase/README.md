@@ -91,7 +91,7 @@ neighbor 10.255.13.1 password METROOPS
 
 ## INC-05 – Feltdepotets præfiks mangler i BGP ved driftscentralen
 
-**Hypotese:** Ruten var i OSPF på R3, men ikke i BGP, så vi tænkte, at en prefix-listen filtrerede den fra.
+**Hypotese:** Ruten var i OSPF på R3, men ikke i BGP, så vi tænkte, at en prefix-list filtrerede den fra.
 
 **Hvad var galt:** Prefix-listen IGP_TO_BGP på R3 tillod 10.18.21.0/24 i stedet for feltdepotets 10.18.20.0/24. Feltdepotets præfiks blev derfor stoppet af deny og kom aldrig fra OSPF ind i BGP.
 

@@ -195,3 +195,13 @@ Her har vi tjekket, at hele netværket virker selv efter vores ændringer på ko
 ![Route](screenshots/samlet/route.png)
 ![Route](screenshots/samlet/route2.png)
 ![Route](screenshots/samlet/route3.png)
+
+**Ping mellem sites**
+
+![Ping](screenshots/samlet/ping.png)
+![Ping](screenshots/samlet/ping2.png)
+![Ping](screenshots/samlet/ping3.png)
+
+**Bilag B**
+
+![BilagB](screenshots/samlet/bilagb.png)

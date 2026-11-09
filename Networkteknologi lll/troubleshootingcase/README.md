@@ -178,3 +178,20 @@ ping 10.255.13.3 source 10.18.30.1 fra R3 fejler, fordi SW3’s default gateway 
 
 ![Efter](screenshots/INC-08/efter.png)
 ![Efter](screenshots/INC-08/efter2.png)
+![Efter](screenshots/INC-08/efter3.png)
+
+## Konklusion
+
+Her har vi tjekket, at hele netværket virker selv efter vores ændringer på konfigurationerne.
+
+**OSPF og BGP**
+
+![BGP-OSPF](screenshots/samlet/bgp-ospf.png)
+![BGP-OSPF](screenshots/samlet/bgp-ospf2.png)
+![BGP-OSPF](screenshots/samlet/bgp-ospf3.png)
+
+**Ruter på R1, R2 og R3**
+
+![Route](screenshots/samlet/route.png)
+![Route](screenshots/samlet/route2.png)
+![Route](screenshots/samlet/route3.png)
